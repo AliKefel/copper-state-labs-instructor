@@ -8,6 +8,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
     include: ["**/*.test.{ts,tsx}"],
-    exclude: ["node_modules/**", ".next/**"],
+    // specs/ holds module acceptance tests, run with `npm run check`.
+    exclude: ["node_modules/**", ".next/**", "specs/**"],
   },
 });
