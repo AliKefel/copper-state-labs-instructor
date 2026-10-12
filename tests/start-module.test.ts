@@ -16,7 +16,7 @@ const script = join(process.cwd(), "scripts/start-module.sh");
 
 // A throwaway clone of a "module-3" branch, plus a fake `gh` that records its
 // arguments instead of talking to GitHub.
-function setup(instructor = "prof-copper") {
+function setup() {
   const root = mkdtempSync(join(tmpdir(), "start-module-"));
   const course = join(root, "course.git");
   const clone = join(root, "clone");
@@ -31,7 +31,7 @@ function setup(instructor = "prof-copper") {
   git(clone, "remote", "add", "origin", course);
   writeFileSync(
     join(clone, "course.config.json"),
-    JSON.stringify({ module: 3, instructor, repoPrefix: "copper-m" }),
+    JSON.stringify({ module: 3, repoPrefix: "copper-m" }),
   );
   mkdirSync(join(clone, "scripts"));
   copyFileSync(script, join(clone, "scripts/start-module.sh"));
@@ -68,18 +68,16 @@ function setup(instructor = "prof-copper") {
 }
 
 describe("npm run start-module", () => {
-  it("makes main, keeps the course remote, creates the private repo and adds the instructor", () => {
+  it("makes main, keeps the course remote, and creates the public repo", () => {
     const { run, gitOut, ghLog } = setup();
     const result = run();
     expect(result.status, result.stderr).toBe(0);
     expect(gitOut("branch", "--show-current")).toBe("main");
     expect(gitOut("remote")).toBe("course");
     expect(ghLog()).toContain(
-      "gh repo create copper-m3 --private --source . --remote origin --push",
+      "gh repo create copper-m3 --public --source . --remote origin --push",
     );
-    expect(ghLog()).toContain(
-      "gh api -X PUT repos/student-1/copper-m3/collaborators/prof-copper --silent",
-    );
+    expect(ghLog()).not.toContain("collaborators");
   });
 
   it("refuses to run twice", () => {
@@ -88,13 +86,5 @@ describe("npm run start-module", () => {
     const second = run();
     expect(second.status).toBe(1);
     expect(second.stderr).toContain("already set up");
-  });
-
-  it("stops if the instructor username is still a placeholder", () => {
-    const { run, gitOut } = setup("REPLACE_WITH_GITHUB_USERNAME");
-    const result = run();
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain("no instructor username");
-    expect(gitOut("remote")).toBe("origin");
   });
 });

@@ -22,7 +22,7 @@ Each module's spec, tests and evals live in `specs/`.
 
 - Never read, print or commit `.env` files (including `.env.local`). Refer to variables by name only.
 - Never correct, remove or reconcile the Product Bible's deliberate traps (Bible Section 11). They are intentional.
-- Never change files under `specs/*/tests` or `specs/*/evals`. If a test looks wrong, say so instead.
+- Never change files under `specs/*/tests` or `specs/*/evals`, or a module's `rubric.md`, `grading.mjs` or `checks/`. If a test looks wrong, say so instead.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

@@ -14,7 +14,7 @@ Supabase or the AI gateway show a "Set up …" card until you add them.
 ## Local setup
 
 1. Install [Node 24](https://nodejs.org) (or run `nvm use`) and the [GitHub CLI](https://cli.github.com).
-2. Clone your module branch, then run `npm run start-module` once to create your own private repo.
+2. Clone your module branch, then run `npm run start-module` once to create your own public `copper-mN` repo.
 3. Run `npm ci`.
 4. Optional: copy the variables below into a new `.env.local` file.
 5. Run `npm run dev` and open http://localhost:3000.

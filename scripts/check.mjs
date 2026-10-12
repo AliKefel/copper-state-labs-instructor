@@ -4,7 +4,14 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { brokenFiles, checkPaths, criteriaFrom, report } from "./check-lib.mjs";
+import {
+  brokenFiles,
+  checkPaths,
+  criteriaFrom,
+  moduleDir,
+  report,
+} from "./check-lib.mjs";
+import { loadRubric } from "./grade/rubric.mjs";
 
 const { module } = JSON.parse(readFileSync("course.config.json", "utf8"));
 const paths = checkPaths(module).filter((p) => existsSync(p));
@@ -37,6 +44,8 @@ if (!existsSync(output)) {
 const results = JSON.parse(readFileSync(output, "utf8"));
 const criteria = criteriaFrom(results);
 const broken = brokenFiles(results);
-console.log(report(module, criteria, broken));
+const dir = moduleDir(module);
+const rubric = dir ? loadRubric(join("specs", dir)) : [];
+console.log(report(module, criteria, broken, rubric));
 const allPassed = criteria.length > 0 && criteria.every((c) => c.passed);
 process.exit(allPassed && broken.length === 0 ? 0 : 1);

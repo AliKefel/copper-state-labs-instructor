@@ -57,6 +57,7 @@ describe("Delivery files", () => {
       "format",
       "check",
       "start-module",
+      "grade",
       "db:migrate",
     ]) {
       expect(scripts[name], name).toBeDefined();

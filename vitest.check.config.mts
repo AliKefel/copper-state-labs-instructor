@@ -6,6 +6,8 @@ import { defineConfig } from "vitest/config";
 // keep that file's `specs/**` exclusion.
 export default defineConfig({
   plugins: [react()],
+  // Kept inside the checkout so parallel grading runs don't share a cache.
+  cacheDir: ".vitest-cache/vite",
   resolve: { tsconfigPaths: true },
   test: {
     environment: "jsdom",

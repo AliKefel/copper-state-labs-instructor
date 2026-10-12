@@ -1,9 +1,17 @@
 // Pure helpers for scripts/check.mjs, kept separate so they can be unit tested.
 import { readdirSync } from "node:fs";
 
+const moduleNumber = (dir) =>
+  Number(/^module-(\d+)(?:-|$)/.exec(dir)?.[1] ?? NaN);
+
+/** The folder name for a module number, e.g. 0 → "module-0-sample". */
+export function moduleDir(module, specDirs = readdirSync("specs")) {
+  return specDirs.find((dir) => moduleNumber(dir) === module) ?? null;
+}
+
 /** Folders to check: the current module's tests and evals, earlier modules' tests. */
 export function checkPaths(module, specDirs = readdirSync("specs")) {
-  const number = (dir) => Number(/^module-(\d+)(?:-|$)/.exec(dir)?.[1] ?? NaN);
+  const number = moduleNumber;
   const paths = [];
   for (const dir of specDirs.filter((d) => !Number.isNaN(number(d))).sort()) {
     if (number(dir) === module)
@@ -42,19 +50,42 @@ export function brokenFiles(vitestJson) {
     .map((f) => ({ file: f.name, message: f.message }));
 }
 
-export function report(module, criteria, broken = []) {
+export function report(module, criteria, broken = [], rubric = []) {
+  const points = new Map(rubric.map((row) => [row.criterion, row.points]));
+  const pts = (id) => (points.has(id) ? ` (${points.get(id)} pts)` : "");
   const lines = [`Module ${module}: acceptance criteria`, ""];
   for (const c of criteria) {
     lines.push(
-      `  ${c.passed ? "✅ PASS" : "❌ FAIL"}  ${c.id}  ${c.description}`,
+      `  ${c.passed ? "✅ PASS" : "❌ FAIL"}  ${c.id}${pts(c.id)}  ${c.description}`,
     );
   }
-  const passed = criteria.filter((c) => c.passed).length;
+  // Rubric rows that the tests don't cover, such as the deployment check.
+  const tested = new Set(criteria.map((c) => c.id));
+  const later = rubric.filter((r) => !tested.has(r.criterion));
+  for (const row of later) {
+    const how =
+      row.gradedBy === "manual" ? "graded by a TA" : "checked when grading";
+    lines.push(
+      `  ⏳ LATER ${row.criterion}${pts(row.criterion)}  ${row.description} (${how})`,
+    );
+  }
   for (const b of broken) {
     lines.push(
       `  ❌ ERROR  ${b.file} could not run: ${b.message ?? "unknown error"}`,
     );
   }
-  lines.push("", `${passed} of ${criteria.length} criteria passed.`);
+  const passed = criteria.filter((c) => c.passed);
+  lines.push("", `${passed.length} of ${criteria.length} criteria passed.`);
+  if (rubric.length > 0) {
+    const sum = (list) =>
+      list.reduce((total, id) => total + (points.get(id) ?? 0), 0);
+    const earned = sum(passed.map((c) => c.id));
+    const possible = sum(criteria.map((c) => c.id));
+    const laterPoints = later.reduce((total, r) => total + r.points, 0);
+    lines.push(
+      `${earned} of ${possible} points from tests` +
+        (laterPoints ? `, plus ${laterPoints} points checked later.` : "."),
+    );
+  }
   return lines.join("\n");
 }

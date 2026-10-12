@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "db:migrate": "node --env-file-if-exists=.env.local scripts/db-migrate.mjs",
     "check": "node scripts/check.mjs",
-    "start-module": "bash scripts/start-module.sh"
+    "start-module": "bash scripts/start-module.sh",
+    "grade": "node scripts/grade/grade.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "5.9.1",
