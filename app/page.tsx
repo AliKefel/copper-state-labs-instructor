@@ -1,22 +1,23 @@
+import { Hero } from "@/components/copper/landing/hero";
+import { PlusPricing } from "@/components/copper/landing/plus-pricing";
+import { PrivacySummary } from "@/components/copper/landing/privacy-summary";
+import { ProductsSection } from "@/components/copper/landing/products-section";
+import { Showcase } from "@/components/copper/landing/showcase";
 import { SiteFooter } from "@/components/copper/site-footer";
 import { SiteHeader } from "@/components/copper/site-header";
+import { getPlans, getPrivacySummary, getProducts } from "@/lib/copper/catalog";
 
 export default function Home() {
+  const products = getProducts();
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center gap-6 px-4 py-16 text-center">
-        <h1 className="text-4xl font-bold">Copper State Labs</h1>
-        <p className="text-muted-foreground text-lg">
-          Our new site is under construction.
-        </p>
-        {/* WEEK 0: change this line */}
-        <p
-          data-testid="week-0-line"
-          className="bg-secondary text-secondary-foreground rounded-lg px-4 py-2"
-        >
-          Week 0 check-in: The Copper State Labs app is set up and live.
-        </p>
+      <main className="flex-1">
+        <Hero products={products} />
+        <ProductsSection products={products} />
+        <Showcase products={products} />
+        <PlusPricing plans={getPlans()} />
+        <PrivacySummary privacy={getPrivacySummary()} />
       </main>
       <SiteFooter />
     </>
