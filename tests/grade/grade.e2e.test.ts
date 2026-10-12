@@ -131,6 +131,10 @@ beforeAll(async () => {
     filter: (source) => !skip.test(relative(repo, source)),
   });
   writeFileSync(join(tmp, "template", "app/page.tsx"), STARTER_PAGE);
+  writeFileSync(
+    join(tmp, "template", "course.config.json"),
+    JSON.stringify({ module: 0, repoPrefix: "copper-m" }),
+  );
 
   makeStudent("ana", (dir) => editLine(dir, "Week 0 check-in: Hi, I'm Ana."));
   makeStudent("ben", (dir) => {

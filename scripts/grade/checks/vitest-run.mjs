@@ -64,7 +64,11 @@ export async function runVitest(ctx, paths, env) {
   for (const file of json.testResults ?? []) {
     for (const test of file.assertionResults ?? []) {
       const id = /\b(AC-[\w.]+)/.exec(test.title)?.[1];
-      if (!id) continue;
+      if (
+        !id ||
+        ["skipped", "pending", "todo", "disabled"].includes(test.status)
+      )
+        continue;
       const entry = byId.get(id) ?? {
         criterion: id,
         passed: true,
