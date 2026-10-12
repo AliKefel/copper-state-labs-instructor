@@ -169,6 +169,8 @@ In testing, 4 fake students graded in about 2 seconds on a laptop without Docker
 
 For each student it asks GitHub for the repo's production deployments (Vercel reports them when a student imports the repo, as in Step 6 of the student instructions), falling back to the roster's `vercel_url`. It loads the page and passes if it returns 200 and shows the marker text, by default the footer "Fictional — for educational use." The details say whether the deployed commit matches the graded one. **Confirm on your dry-run account** that the grader finds a real Vercel deployment.
 
+**Vercel's login on deployment URLs.** New Vercel projects turn on Vercel Authentication, which puts a Vercel login in front of each deployment's own URL (`copper-m0-12j5-m6oj94gwm-<team>-projects.vercel.app`), the URL Vercel reports to GitHub. The project's production domain (`copper-m0-12j5.vercel.app`) stays public. When a URL leads to the Vercel login, the check tries the roster's `vercel_url`, then the production domain worked out from the deployment URL, and says so in the feedback. Working out the domain is a best guess, so **fill `vercel_url` from the links students submit** (their public `https://<project>.vercel.app` link). Don't ask students to turn the protection off.
+
 ### Evals
 
 `--evals` runs `specs/module-N/evals` only for students whose spec tests all pass, with `AI_GATEWAY_API_KEY` set from your `GRADING_AI_GATEWAY_API_KEY`. Evals call the student's AI features, so this is the one key student code **can** read during grading, and a student could make their code send it elsewhere. So:
