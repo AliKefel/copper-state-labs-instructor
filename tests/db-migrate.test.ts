@@ -1,15 +1,15 @@
 // @vitest-environment node
 import { spawnSync } from "node:child_process";
-import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { chmodSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { tempDir } from "./helpers/temp-dir";
 
 const script = join(process.cwd(), "scripts/db-migrate.mjs");
 
 function run(env: Record<string, string>) {
   // A fake `npx` on PATH records the command instead of touching a database.
-  const bin = mkdtempSync(join(tmpdir(), "fake-npx-"));
+  const bin = tempDir("fake-npx-");
   writeFileSync(join(bin, "npx"), '#!/bin/sh\necho "npx $*"\n');
   chmodSync(join(bin, "npx"), 0o755);
   return spawnSync(process.execPath, [script], {

@@ -14,8 +14,19 @@
 //   --no-cache             grade everyone again
 //   --keep                 keep the temporary checkouts (for debugging)
 //   --repo-template <url>  default: https://github.com/{github}/{prefix}{module}.git
+//
+// Student code runs as you here. To grade real students, use
+// `npm run grade:docker`, which runs this inside a throwaway container.
 import { createHash } from "node:crypto";
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import {
+  chmodSync,
+  cpSync,
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+} from "node:fs";
 import { availableParallelism, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
@@ -23,7 +34,7 @@ import { moduleDir } from "../check-lib.mjs";
 import { createCache } from "./cache.mjs";
 import { loadModuleConfig } from "./config.mjs";
 import { pool } from "./pool.mjs";
-import { ghApi } from "./proc.mjs";
+import { ghApi, runSync } from "./proc.mjs";
 import { writeReports } from "./report.mjs";
 import { score } from "./rubric.mjs";
 import { loadRoster } from "./roster.mjs";
@@ -76,9 +87,22 @@ const specDirs = readdirSync(join(root, "specs"));
 const repoName = `${course.repoPrefix}${moduleNumber}`;
 const template =
   opts["repo-template"] ?? "https://github.com/{github}/{repo}.git";
-const outDir = resolve(
+const finalOut = resolve(
   opts.out ?? join(root, ".grading", `module-${moduleNumber}`),
 );
+// In the grading container (Dockerfile.grader) the grader runs as root and
+// each student's code runs as its own user, which can't touch the grader, the
+// shared packages, other students' checkouts or the results. Results are built
+// in a private folder and copied out at the end.
+const uidBase = Number(process.env.GRADE_STUDENT_UID_BASE);
+const isolated = uidBase > 0 && process.getuid?.() === 0;
+const outDir = isolated ? mkdtempSync(join(tmpdir(), "grade-out-")) : finalOut;
+if (isolated && existsSync(join(finalOut, "cache"))) {
+  cpSync(join(finalOut, "cache"), join(outDir, "cache"), { recursive: true });
+}
+// Where the results end up, as you'd see the path (the container's /results
+// is a folder on your computer).
+const outLabel = process.env.GRADE_OUT_LABEL ?? finalOut;
 const hiddenDir = opts.hidden ? resolve(opts.hidden) : null;
 const only = opts.only
   ? new Set(opts.only.split(",").map((s) => s.trim()))
@@ -92,12 +116,14 @@ const concurrency = Number(
 const cache = createCache(join(outDir, "cache"), !opts["no-cache"]);
 const gradingPrint = fingerprint(root, hiddenDir);
 const work = mkdtempSync(join(tmpdir(), `grade-m${moduleNumber}-`));
+if (isolated) chmodSync(work, 0o711);
 const started = performance.now();
 let fromCache = 0;
 
 console.log(
   `Grading module ${moduleNumber} (${moduleDirName}) for ${roster.length} students, ` +
-    `${concurrency} at a time. Checks: ${config.checks.map((c) => c.id).join(", ")}.`,
+    `${concurrency} at a time. Checks: ${config.checks.map((c) => c.id).join(", ")}.` +
+    (isolated ? " Student code runs as separate users." : ""),
 );
 
 async function gradeStudent(student) {
@@ -107,6 +133,7 @@ async function gradeStudent(student) {
     .replaceAll("{repo}", repoName)
     .replaceAll("{module}", String(moduleNumber));
   const dir = join(work, student.github);
+  const uid = isolated ? uidBase + roster.indexOf(student) : undefined;
   const submission = fetchSubmission({ url, dir, deadline });
   if (submission.missing) {
     return { student, status: "no submission", notes: [submission.missing] };
@@ -121,6 +148,7 @@ async function gradeStudent(student) {
     moduleDirName,
     specDirs,
     dir,
+    uid,
     root,
     settings: config.settings,
     timeoutMs: config.timeoutMs,
@@ -148,6 +176,8 @@ async function gradeStudent(student) {
           });
           if (install !== "shared")
             notes.push(`dependencies changed, ran ${install}`);
+          // -h: change the node_modules link itself, never your packages.
+          if (isolated) runSync("chown", ["-R", "-h", `${uid}:${uid}`, dir]);
           prepared = true;
         }
         outcome = await check.run(ctx);
@@ -185,11 +215,19 @@ try {
     return result;
   });
   writeReports(outDir, moduleNumber, config.rubric, graded);
+  if (isolated) {
+    // Replace whatever is there, including anything student code left behind.
+    for (const entry of existsSync(finalOut) ? readdirSync(finalOut) : []) {
+      rmSync(join(finalOut, entry), { recursive: true, force: true });
+    }
+    cpSync(outDir, finalOut, { recursive: true });
+  }
   const seconds = ((performance.now() - started) / 1000).toFixed(1);
   console.log(
     `\nDone in ${seconds}s (${fromCache} check results from cache).\n` +
-      `Grades:   ${join(outDir, "grades.csv")}\nFeedback: ${join(outDir, "feedback")}/`,
+      `Grades:   ${join(outLabel, "grades.csv")}\nFeedback: ${join(outLabel, "feedback")}/`,
   );
 } finally {
   if (!opts.keep) rmSync(work, { recursive: true, force: true });
+  if (isolated) rmSync(outDir, { recursive: true, force: true });
 }

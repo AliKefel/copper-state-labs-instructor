@@ -4,20 +4,19 @@ import {
   chmodSync,
   copyFileSync,
   mkdirSync,
-  mkdtempSync,
   readFileSync,
   writeFileSync,
 } from "node:fs";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { tempDir } from "./helpers/temp-dir";
 
 const script = join(process.cwd(), "scripts/start-module.sh");
 
 // A throwaway clone of a "module-3" branch, plus a fake `gh` that records its
 // arguments instead of talking to GitHub.
 function setup() {
-  const root = mkdtempSync(join(tmpdir(), "start-module-"));
+  const root = tempDir("start-module-");
   const course = join(root, "course.git");
   const clone = join(root, "clone");
   const bin = join(root, "bin");

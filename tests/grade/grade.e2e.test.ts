@@ -5,21 +5,20 @@ import {
   chmodSync,
   cpSync,
   mkdirSync,
-  mkdtempSync,
   readdirSync,
   readFileSync,
   writeFileSync,
 } from "node:fs";
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
-import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { promisify } from "node:util";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { tempDir } from "../helpers/temp-dir";
 
 const exec = promisify(execFile);
 const repo = process.cwd();
-const tmp = mkdtempSync(join(tmpdir(), "grade-e2e-"));
+const tmp = tempDir("grade-e2e-");
 const students = join(tmp, "students");
 const out = join(tmp, "out");
 const DEADLINE = "2026-11-03T23:59:00Z";

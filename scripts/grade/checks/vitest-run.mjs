@@ -1,6 +1,12 @@
 // Runs spec tests or evals in a student's checkout and turns the Vitest JSON
 // report into results: one per acceptance-criterion ID.
-import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import {
+  chownSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { brokenFiles } from "../../check-lib.mjs";
@@ -10,10 +16,10 @@ export async function runVitest(ctx, paths, env) {
   const present = paths.filter((p) => existsSync(join(ctx.dir, p)));
   if (present.length === 0) return { results: [], errors: [] };
 
-  const output = join(
-    mkdtempSync(join(tmpdir(), "grade-vitest-")),
-    "results.json",
-  );
+  const outputDir = mkdtempSync(join(tmpdir(), "grade-vitest-"));
+  const output = join(outputDir, "results.json");
+  // In the grading container, the tests run as the student's own user.
+  if (ctx.uid !== undefined) chownSync(outputDir, ctx.uid, ctx.uid);
   const vitest = join(ctx.dir, "node_modules", "vitest", "vitest.mjs");
   const run = await runAsync(
     process.execPath,
@@ -28,15 +34,25 @@ export async function runVitest(ctx, paths, env) {
       "--fsModuleCachePath=.vitest-cache/fs",
       ...present,
     ],
-    { cwd: ctx.dir, env, timeoutMs: ctx.timeoutMs },
+    {
+      cwd: ctx.dir,
+      env: ctx.uid === undefined ? env : { ...env, HOME: ctx.dir },
+      timeoutMs: ctx.timeoutMs,
+      uid: ctx.uid,
+    },
   );
+  const json =
+    !run.timedOut && existsSync(output)
+      ? JSON.parse(readFileSync(output, "utf8"))
+      : null;
+  rmSync(outputDir, { recursive: true, force: true });
   if (run.timedOut) {
     return {
       results: [],
       errors: [`timed out after ${ctx.timeoutMs / 1000}s`],
     };
   }
-  if (!existsSync(output)) {
+  if (!json) {
     const last = run.stderr.trim().split("\n").slice(-3).join(" ");
     return {
       results: [],
@@ -44,7 +60,6 @@ export async function runVitest(ctx, paths, env) {
     };
   }
 
-  const json = JSON.parse(readFileSync(output, "utf8"));
   const byId = new Map();
   for (const file of json.testResults ?? []) {
     for (const test of file.assertionResults ?? []) {
