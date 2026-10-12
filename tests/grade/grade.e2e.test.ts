@@ -6,6 +6,7 @@ import {
   cpSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   writeFileSync,
 } from "node:fs";
@@ -25,6 +26,14 @@ const DEADLINE = "2026-11-03T23:59:00Z";
 const ON_TIME = "2026-11-01T12:00:00Z";
 const LATE = "2026-11-05T12:00:00Z";
 const DEFAULT_LINE = "Week 0 check-in: Hello from Copper State Labs!";
+// Grades the Week 0 sample module, which stays in specs/ on every branch.
+const MODULE_0 = readdirSync("specs").find((dir) => /^module-0(-|$)/.test(dir));
+// The starter's Week 0 page. Every fake student starts from this, so the test
+// gives the same result on starter, solution and later-module branches.
+const STARTER_PAGE = `export default function Home() {
+  return <p data-testid="week-0-line">${DEFAULT_LINE}</p>;
+}
+`;
 
 let server: Server;
 
@@ -71,6 +80,8 @@ async function grade() {
     process.execPath,
     [
       "scripts/grade/grade.mjs",
+      "--module",
+      "0",
       "--roster",
       join(tmp, "roster.csv"),
       "--deadline",
@@ -104,6 +115,7 @@ async function grade() {
 let first: Awaited<ReturnType<typeof grade>>;
 
 beforeAll(async () => {
+  if (!MODULE_0) return;
   // A live "Vercel" site for ana.
   server = createServer((_, res) =>
     res.end("<footer>Fictional — for educational use.</footer>"),
@@ -119,15 +131,19 @@ beforeAll(async () => {
     recursive: true,
     filter: (source) => !skip.test(relative(repo, source)),
   });
+  writeFileSync(join(tmp, "template", "app/page.tsx"), STARTER_PAGE);
 
   makeStudent("ana", (dir) => editLine(dir, "Week 0 check-in: Hi, I'm Ana."));
   makeStudent("ben", (dir) => {
     // Unchanged line, but the AC-0.2 test was weakened to always pass.
-    const test = join(dir, "specs/module-0-sample/tests/week-0.test.tsx");
-    writeFileSync(
-      test,
-      readFileSync(test, "utf8").replace(".not.toBe(", ".toBe("),
-    );
+    const tests = join(dir, "specs", MODULE_0!, "tests");
+    for (const file of readdirSync(tests)) {
+      const test = join(tests, file);
+      writeFileSync(
+        test,
+        readFileSync(test, "utf8").replace(".not.toBe(", ".toBe("),
+      );
+    }
   });
   makeStudent(
     "cam",
@@ -147,9 +163,14 @@ beforeAll(async () => {
   first = await grade();
 }, 240_000);
 
-afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
+afterAll(
+  () =>
+    new Promise<void>((resolve) =>
+      server ? server.close(() => resolve()) : resolve(),
+    ),
+);
 
-describe("npm run grade", () => {
+describe.runIf(MODULE_0)("npm run grade", () => {
   it("scores a finished, deployed submission in full", () => {
     expect(first.csv.ana).toMatchObject({
       status: "on time",
