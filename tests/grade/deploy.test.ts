@@ -2,7 +2,10 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import deploy, { DEFAULT_MARKER } from "../../scripts/grade/checks/deploy.mjs";
+import deploy, {
+  DEFAULT_MARKER,
+  productionDomain,
+} from "../../scripts/grade/checks/deploy.mjs";
 
 let server: Server;
 let base = "";
@@ -148,5 +151,68 @@ describe("deploy check", () => {
     });
     expect(result.passed).toBe(false);
     expect(result.detail).toContain("GitHub lookup failed");
+  });
+
+  describe("Vercel login on deployment URLs", () => {
+    const DEPLOYMENT =
+      "https://copper-m0-12j5-m6oj94gwm-team-projects.vercel.app";
+    const PRODUCTION = "https://copper-m0-12j5.vercel.app";
+
+    // Deployment URLs end at the Vercel login, like Vercel Authentication;
+    // the given public URLs show `pages[url]`.
+    const fakeVercel =
+      (pages: Record<string, string>) => async (url: string) =>
+        url in pages
+          ? new Response(pages[url])
+          : Object.defineProperty(
+              new Response("<h1>Log in to Vercel</h1>"),
+              "url",
+              {
+                value: `https://vercel.com/login?next=${encodeURIComponent(url)}`,
+              },
+            );
+    const github = fakeGitHub([
+      {
+        id: 1,
+        sha: "abc1234def",
+        environment: "Production",
+        url: DEPLOYMENT,
+      },
+    ]);
+
+    it("works out the production domain from a deployment URL", () => {
+      expect(productionDomain(`${DEPLOYMENT}/`)).toBe(PRODUCTION);
+      expect(productionDomain(PRODUCTION)).toBeNull();
+    });
+
+    it("uses the production domain when the deployment URL needs a login", async () => {
+      const result = await run({
+        gh: github,
+        fetch: fakeVercel({ [PRODUCTION]: `<p>${DEFAULT_MARKER}</p>` }),
+      });
+      expect(result.passed).toBe(true);
+      expect(result.detail).toContain(`live at ${PRODUCTION}`);
+      expect(result.detail).toContain("needs a Vercel login");
+      expect(result.detail).toContain("matches graded commit");
+    });
+
+    it("prefers the roster's vercel_url over the guessed domain", async () => {
+      const roster = "https://my-copper.vercel.app";
+      const result = await run({
+        gh: github,
+        student: { github: "ana", vercel_url: roster },
+        fetch: fakeVercel({ [roster]: `<p>${DEFAULT_MARKER}</p>` }),
+      });
+      expect(result.passed).toBe(true);
+      expect(result.detail).toContain(`live at ${roster}`);
+    });
+
+    it("explains the login problem when no public URL works", async () => {
+      const result = await run({ gh: github, fetch: fakeVercel({}) });
+      expect(result.passed).toBe(false);
+      expect(result.detail).toContain("needs a Vercel login");
+      expect(result.detail).toContain("roster's vercel_url");
+      expect(result.detail).not.toContain("doesn't show");
+    });
   });
 });
