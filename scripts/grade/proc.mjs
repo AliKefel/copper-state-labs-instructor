@@ -14,17 +14,21 @@ export function runSync(command, args, options = {}) {
   return result.stdout.trim();
 }
 
-/** Runs a command without blocking, killing it after timeoutMs. */
+/**
+ * Runs a command without blocking, killing it after timeoutMs. With `uid`, it
+ * runs as that user (the grading container runs student code this way).
+ */
 export function runAsync(
   command,
   args,
-  { cwd, env, timeoutMs = 180_000 } = {},
+  { cwd, env, timeoutMs = 180_000, uid } = {},
 ) {
   return new Promise((resolve) => {
     const child = spawn(command, args, {
       cwd,
       env,
       stdio: ["ignore", "pipe", "pipe"],
+      ...(uid === undefined ? {} : { uid, gid: uid }),
     });
     let stdout = "";
     let stderr = "";

@@ -1,14 +1,14 @@
 // @vitest-environment node
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { tempDir } from "../helpers/temp-dir";
 import { loadModuleConfig } from "../../scripts/grade/config.mjs";
 import { safeEnv } from "../../scripts/grade/proc.mjs";
 import { parseRoster } from "../../scripts/grade/roster.mjs";
 
 function fakeModule(files: Record<string, string>) {
-  const root = mkdtempSync(join(tmpdir(), "grade-config-"));
+  const root = tempDir("grade-config-");
   for (const [path, content] of Object.entries(files)) {
     mkdirSync(join(root, path, ".."), { recursive: true });
     writeFileSync(join(root, path), content);
