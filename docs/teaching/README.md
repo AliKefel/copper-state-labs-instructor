@@ -2,7 +2,7 @@
 
 _For the instructor and TAs. Don't share this file with students._
 
-This guide covers what's in the base repo, what to set up before Module 0, how modules are released and checked, and the problems students are most likely to hit. The full requirements are in [`docs/starter-app.md`](../starter-app.md); the student walkthrough is [`specs/module-0/instructions.md`](../../specs/module-0/instructions.md). The Product Bible's deliberate traps and the asset-generation guidance are in [`product-bible-traps.md`](product-bible-traps.md). Each module's own notes are in `specs/module-N/teaching.md`.
+This guide covers what's in the base repo, what to set up before Module 0, how modules are released and checked, and the problems students are most likely to hit. The full requirements are in [`docs/starter-app.md`](../starter-app.md); the student walkthrough is [`specs/module-0/instructions.md`](../../specs/module-0/instructions.md). The Product Bible's deliberate traps and the asset-generation guidance are in [`product-bible-traps.md`](product-bible-traps.md). Each module's own guide is in `specs/module-N/teaching.md` (section 2).
 
 ---
 
@@ -36,16 +36,9 @@ To add or change a model, edit both files. `tests/ai.test.ts` fails if a model h
 
 ---
 
-## 2. Before Module 0: setup checklist
+## 2. Module guides
 
-- [ ] **Create the student-facing course repo.** This repo is the instructor repo and will hold solutions, so students clone from a separate one. Publish the `module-0` branch to it.
-- [ ] **Fill in `COURSE_REPO_URL`** in `specs/module-0/instructions.md` (or post it in Canvas). The course repo's `main` README already has the real clone URL.
-- [ ] **Check that branch names match.** The student instructions use `git clone --branch module-0`. Use the same naming for every module branch.
-- [ ] **Do a dry run with a test GitHub account:** clone, `npm run start-module`, `npm ci`, `npm run dev`, change the Week 0 line, `npm run check` (2 of 2), push, deploy on Vercel. This also confirms criteria 9 and 10.
-- [ ] **Confirm criterion 5 once** with real keys: put `AI_GATEWAY_API_KEY`, the Supabase URL and publishable key, and `SUPABASE_DB_URL` in `.env.local`, run `npm run db:migrate`, then `npm test`. The live test in `tests/ai.integration.test.ts` stops being skipped and checks the `ai_calls` row.
-- [ ] **Open the repo in Codespaces once** to confirm it reaches a running dev server (criterion 10).
-- [ ] **Push a branch and open a PR** to confirm CI passes (criterion 3).
-- [ ] **Set up grading** (section 4): install Docker Desktop, create the read-only grading token, and grade your dry-run account once with `npm run grade:docker` to confirm the deployment check finds its Vercel site.
+Each module has its own instructor guide in `specs/module-N/teaching.md`: what students learn, what's in the starter, the release checklist, how each criterion is checked, grading, common mistakes, discussion prompts and limits. The setup checklist for the first release is in `specs/module-0/teaching.md`.
 
 ---
 
@@ -70,7 +63,7 @@ Because every module starts from the previous solution, a student who didn't fin
 
 1. Branch `module-N` from the previous module's solution.
 2. Set `"module": N` in `course.config.json`.
-3. Create `specs/module-N/` (layout in `specs/README.md`): `spec.md`, `instructions.md`, `tests/`, `rubric.md`, optional `evals/`, `data/`, `assets/`, `reflection.md`, `CLAUDE.md`, and optional grading extensions (`grading.mjs`, `checks/`, see section 4).
+3. Create `specs/module-N/` (layout in `specs/README.md`): `spec.md`, `instructions.md` (follow the layout of the Module 0 and Module 1 instructions), `teaching.md` (instructor-only, same sections as the other modules), `tests/`, `rubric.md`, optional `evals/`, `data/`, `assets/`, `reflection.md`, `CLAUDE.md`, and optional grading extensions (`grading.mjs`, `checks/`, see section 4).
 4. Name every test after its criterion: `it("AC-N.x <what it checks>", …)`. A criterion passes only if **all** tests with that ID pass. Tests without an ID are ignored by `check`.
 5. Add starter stubs (TODOs) for what students will build.
 6. **Check that the tests fail on the starter and pass on your solution.** If a test passes on the starter, it isn't testing the assignment.
@@ -167,7 +160,7 @@ In testing, 4 fake students graded in about 2 seconds on a laptop without Docker
 
 ### The deployment check
 
-For each student it asks GitHub for the repo's production deployments (Vercel reports them when a student imports the repo, as in Step 6 of the student instructions), falling back to the roster's `vercel_url`. It loads the page and passes if it returns 200 and shows the marker text, by default the footer "Fictional — for educational use." The details say whether the deployed commit matches the graded one. **Confirm on your dry-run account** that the grader finds a real Vercel deployment.
+For each student it asks GitHub for the repo's production deployments (Vercel reports them when a student imports the repo, as in the last step of each module's student instructions), falling back to the roster's `vercel_url`. It loads the page and passes if it returns 200 and shows the marker text, by default the footer "Fictional — for educational use." The details say whether the deployed commit matches the graded one. **Confirm on your dry-run account** that the grader finds a real Vercel deployment.
 
 **Vercel's login on deployment URLs.** New Vercel projects turn on Vercel Authentication, which puts a Vercel login in front of each deployment's own URL (`copper-m0-12j5-m6oj94gwm-<team>-projects.vercel.app`), the URL Vercel reports to GitHub. The project's production domain (`copper-m0-12j5.vercel.app`) stays public. When a URL leads to the Vercel login, the check tries the roster's `vercel_url`, then the production domain worked out from the deployment URL, and says so in the feedback. Working out the domain is a best guess, so **fill `vercel_url` from the links students submit** (their public `https://<project>.vercel.app` link). Don't ask students to turn the protection off.
 
