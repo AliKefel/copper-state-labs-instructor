@@ -6,7 +6,12 @@ The Copper State Labs site still says "under construction." This module, you rep
 
 The full requirements are in **`specs/module-1/spec.md`**. Read it before you start. This page walks you through the steps.
 
-> **Placeholders:** wherever you see `COURSE_REPO_URL`, use the course repository link your instructor posts in Canvas.
+| | |
+|---|---|
+| **You'll build** | A one-page landing page: hero, products, showcase, Copper Plus pricing and privacy |
+| **Your repo** | `copper-m1` (public, on your GitHub account; a new repo, separate from `copper-m0`) |
+| **Points** | 75 from tests, plus 10 for design (a TA) and 15 for the live site |
+| **Submit** | Your repo link, your Vercel link and a screenshot of `npm run check` (see [What to submit](#what-to-submit)) |
 
 ---
 
@@ -15,17 +20,19 @@ The full requirements are in **`specs/module-1/spec.md`**. Read it before you st
 - Module 0 is done: you have a `copper-m0` repo and a live Vercel site.
 - Your tools still work: `node --version` starts with v24, and `gh auth status` says you're logged in.
 
-## Step 1: Get the Module 1 starter
+## Step 1: Get the starter code and make it yours
 
 Each module starts in a new repo. Your `copper-m0` repo stays as it is.
 
 ```bash
 cd ~/Developer        # or wherever you keep your projects
-git clone --branch module-1 COURSE_REPO_URL copper-m1
+git clone --branch module-1 https://github.com/AliKefel/copper-state-labs-student.git copper-m1
 cd copper-m1
 npm run start-module  # creates github.com/YOUR-USERNAME/copper-m1 (public)
 npm ci
 ```
+
+If `npm run start-module` stops with an error, fix what the message says and run it again. It picks up where it stopped.
 
 Check where you're starting from:
 
@@ -95,8 +102,8 @@ The design rubric in `spec.md` is what the TA uses. Read it before you finish.
 ```bash
 npm run check       # Module 1 criteria: aim for 12 of 12
 npm test            # the app's own tests
-npm run lint
-npm run typecheck
+npm run lint        # code style
+npm run typecheck   # type errors
 ```
 
 `npm run check` should say **12 of 12 criteria passed** and **75 of 75 points from tests**.
@@ -138,7 +145,7 @@ Your last commit before the deadline is graded. Tests are run with your instruct
 
 ## Rules
 
-- **Don't edit** `specs/module-1/tests/`, `specs/module-1/rubric.md`, `lib/copper/catalog.ts` or `lib/copper/data/`. Don't rename or change the images after Step 0.
+- **Don't edit** `specs/*/tests`, `specs/*/rubric.md`, `lib/copper/catalog.ts` or `lib/copper/data/`. Don't rename or change the images after Step 2.
 - **Don't "fix" the Product Bible.** Its conflicting documents are deliberate.
 - **Never commit `.env` files or paste keys into code.** This module needs no keys at all.
 - **Everything about Copper State Labs is fictional.** Don't use real company names, logos or products.
@@ -154,6 +161,8 @@ Your last commit before the deadline is graded. Tests are run with your instruct
 | AC-1.3 fails | Only one `h1` on the whole page, in the hero, 10 words or fewer. Use `h2` for section titles |
 | AC-4.1 fails | The message names the file and color. Swap it for a theme class |
 | Every criterion fails at once | The page doesn't render, or the hero's `data-testid="hero"` is missing. Run `npm run typecheck` |
+| `npm run start-module` says "already set up" | It already finished. Your repo exists; carry on with `npm ci` |
+| `npm run start-module` says it could not push | You already have a `copper-m1` repo with other work in it. Delete it on GitHub (Settings > Delete this repository) and run the command again |
 | `npm run check` says "could not run" | A compile error. `npm run typecheck` shows it |
 | Vercel build fails | Run `npm run build` on your computer and fix the first error |
 

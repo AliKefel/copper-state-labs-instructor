@@ -39,7 +39,7 @@ The home page is still Module 0's placeholder (with your Week 0 solution line), 
   ```
 
   Then check `git ls-files | grep -iE "teaching|solution"` prints nothing.
-- [ ] **Post `COURSE_REPO_URL`** in Canvas (student instructions use the placeholder).
+- [ ] **Check the clone URL** in `specs/module-1/instructions.md` (`https://github.com/AliKefel/copper-state-labs-student.git`, branch `module-1`).
 - [ ] **Dry run:** with your test account, clone `module-1`, run `npm run start-module` (creates `copper-m1`), do Step 0, and check `npm run check` passes AC-2.3.
 
 ## 4. How each criterion is checked
@@ -113,5 +113,5 @@ The tests await the page if it's an `async` server component, but only plain syn
 ## 8. Limits to know about
 
 - **Tests can't see layout.** Responsiveness, image proportions and visual polish are only in DESIGN.
-- **Students can game their own tests** (same as every module; see the base guide). The page code is public, and DESIGN looks at the real site.
+- **Students can game their own tests** (same as every module; see the course guide). The page code is public, and DESIGN looks at the real site.
 - **AC-3.1 mocks `@/lib/copper/catalog`.** A page that imports `lib/copper/data/catalog.json` directly, bypassing `catalog.ts`, fails AC-3.1. The spec requires `catalog.ts`, so that's intended.
