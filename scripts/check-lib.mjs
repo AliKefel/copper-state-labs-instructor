@@ -4,7 +4,7 @@ import { readdirSync } from "node:fs";
 const moduleNumber = (dir) =>
   Number(/^module-(\d+)(?:-|$)/.exec(dir)?.[1] ?? NaN);
 
-/** The folder name for a module number, e.g. 0 → "module-0-sample". */
+/** The folder name for a module number, e.g. 0 → "module-0". */
 export function moduleDir(module, specDirs = readdirSync("specs")) {
   return specDirs.find((dir) => moduleNumber(dir) === module) ?? null;
 }

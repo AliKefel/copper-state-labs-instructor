@@ -2,7 +2,8 @@
 
 This repo is the CIS 591 class app for Copper State Labs, a fictional company.
 The company's facts live in `docs/copper-state-labs/product-bible.md`.
-Each module's spec, tests and evals live in `specs/`.
+Each module's spec, instructions, tests and evals live in `specs/module-N/`.
+How the app fits together is in `docs/architecture.md`; add a section there when a module adds pages, tables or AI calls.
 
 ## How to work
 
@@ -21,7 +22,7 @@ Each module's spec, tests and evals live in `specs/`.
 ## Never
 
 - Never read, print or commit `.env` files (including `.env.local`). Refer to variables by name only.
-- Never correct, remove or reconcile the Product Bible's deliberate traps (Bible Section 11). They are intentional.
+- Never correct, remove or reconcile conflicting or outdated facts in the Product Bible (for example the old 2024 privacy policy or the Marketing FAQ error). They are intentional.
 - Never change files under `specs/*/tests` or `specs/*/evals`, or a module's `rubric.md`, `grading.mjs` or `checks/`. If a test looks wrong, say so instead.
 
 <!-- BEGIN:nextjs-agent-rules -->

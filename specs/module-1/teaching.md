@@ -2,7 +2,7 @@
 
 _Fictional — for educational use. **Instructor-only: never publish this file to students.**_
 
-Students replace the Week 0 placeholder with a one-page landing page for Copper Home, Copper Notes and Copper Plus, built with an AI agent from `spec.md`. The base teaching guide (`specs/base/teaching.md`) covers the grader, Docker and publishing in general; this guide covers what's specific to Module 1.
+Students replace the Module 0 placeholder with a one-page landing page for Copper Home, Copper Notes and Copper Plus, built with an AI agent from `spec.md`. The course teaching guide (`docs/teaching/README.md`) covers the grader, Docker and publishing in general; this guide covers what's specific to Module 1.
 
 ---
 
@@ -22,9 +22,9 @@ Students replace the Week 0 placeholder with a one-page landing page for Copper 
 | `specs/module-1/assets/` | Six images: 2 cutouts, 3 lifestyle photos, the mascot. Students move them to `public/assets/` in spec Step 0 |
 | `specs/module-1/tests/landing-page.test.tsx` | The 12 auto-graded criteria |
 | `specs/module-1/rubric.md`, `grading.mjs` | Points, and the deploy marker (the tagline) |
-| `specs/module-1/student_instruction.md` | The student walkthrough |
+| `specs/module-1/instructions.md` | The student walkthrough |
 | `lib/copper/catalog.ts`, `lib/copper/data/catalog.json` | Products, plans, features, colors, image paths and 2026 privacy points, with formatting helpers. `tests/catalog.test.ts` checks it against the Bible |
-| `course.config.json` | `"module": 1`, so `npm run check` shows Module 1 and Module 0's Week 0 tests retire |
+| `course.config.json` | `"module": 1`, so `npm run check` shows Module 1 and Module 0's tests retire |
 
 The home page is still Module 0's placeholder (with your Week 0 solution line), so the starter scores **0 of 12** on `npm run check`.
 
@@ -32,11 +32,10 @@ The home page is still Module 0's placeholder (with your Week 0 solution line), 
 
 - [ ] **Build your solution on `module-1-solution`** and confirm `npm run check` shows 12 of 12 and `npm test`, lint and typecheck pass. Deploy it once to Vercel to confirm the tagline marker is found.
 - [ ] **Release after Module 0's deadline.** The starter contains the Module 0 solution (the edited Week 0 line).
-- [ ] **Publish `module-1-starter` as the course repo's `module-1` branch**, the same way as Module 0: a history-free copy, with instructor files removed. For this module the removal list is:
+- [ ] **Publish `module-1-starter` as the course repo's `module-1` branch**, the same way as Module 0, with the instructor-only files removed:
 
   ```bash
-  git rm -rq --ignore-unmatch specs/base/teaching.md specs/base/spec.md \
-    docs/copper-state-labs/assets specs/module-1/teaching.md
+  git rm -rq --ignore-unmatch docs/teaching 'specs/*/teaching.md'
   ```
 
   Then check `git ls-files | grep -iE "teaching|solution"` prints nothing.
@@ -101,7 +100,7 @@ About 3–4 minutes per student. Calibrate by scoring three submissions together
 | Images copied instead of moved, or renamed | Step 0 skipped or "improved" | AC-2.3, and AC-2.1/2.2 paths |
 | "Copper never records you" on the page | The agent read the Marketing FAQ trap | AC-3.3 |
 | Every criterion failing | The page crashes in tests, or no `data-testid="hero"` | All |
-| DEPLOY 0 with a live site | Vercel is serving the Week 0 placeholder (wrong repo imported), or the tagline is missing | DEPLOY |
+| DEPLOY 0 with a live site | Vercel is serving the Module 0 placeholder (wrong repo imported), or the tagline is missing | DEPLOY |
 
 The tests await the page if it's an `async` server component, but only plain synchronous pages have been tried so far. If an async page fails every criterion, check that first. Static image imports (`import home from "@/public/…"`) haven't been tried either; the spec asks for `/assets/…` string paths, which are tested.
 

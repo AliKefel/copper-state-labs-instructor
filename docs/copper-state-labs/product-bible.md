@@ -1,19 +1,7 @@
 # Copper State Labs — Product Bible
-## Source of truth for CIS 591 class-example assets
+## Company facts, products, and policies
 
-> **Everything in this document is fictional.** Copper State Labs, the Copper assistant, its products, people, policies, prices, and costs are invented for teaching. When generating assets, never use real company names, assistant names, logos, wake words, or product designs, and never make Copper State Labs products look like real devices on the market. All costs and prices are illustrative, not real market data.
-
----
-
-## How to use this document
-
-Attach this file whenever you ask Claude (or any generator) to create a Copper State Labs asset, such as product images, manuals, policies, review datasets, database tables, or economics sheets, so every asset uses the same facts.
-
-**Rules for every asset:**
-1. Use only the facts in this document. If an asset needs a new fact, invent it, then add it here so future assets stay consistent.
-2. Keep the **deliberate traps** (Section 11) exactly as written. The class examples depend on them.
-3. Label every generated document "Fictional — for educational use."
-4. Keep the Arizona flavor and the copper / value-chain theme light: a reference now and then, never in every sentence.
+> **Fictional — for educational use.** Copper State Labs, the Copper assistant, its products, people, policies, prices, and costs are invented. They do not represent any real company, assistant, logo, wake word, or device. All costs and prices are illustrative, not real market data.
 
 ---
 
@@ -46,12 +34,12 @@ Copper is Copper State Labs' voice assistant: practical, dependable, and quietly
 
 ### Key people (fictional)
 
-| Name | Role | Appears in |
-|---|---|---|
-| Priya Nair | CEO and co-founder | Company materials; M7 investor discussions |
-| Jake Morales | Head of Hardware and co-founder | Product materials |
-| Elena Vargas | VP of Customer Experience | Module 2 brief (Review Radar) |
-| Marcus Lee | Director of Support, leads the Copper Crew | Module 3 brief (support assistant) |
+| Name | Role |
+|---|---|
+| Priya Nair | CEO and co-founder |
+| Jake Morales | Head of Hardware and co-founder |
+| Elena Vargas | VP of Customer Experience |
+| Marcus Lee | Director of Support, leads the Copper Crew |
 
 ---
 
@@ -62,7 +50,7 @@ Copper is Copper State Labs' voice assistant: practical, dependable, and quietly
 | **Personality** | Practical, trustworthy, smart, proudly Arizonan |
 | **Voice** | Short sentences, plain language, confident but never exaggerated. Occasional copper or mining metaphors ("let's refine that"). No health or safety claims beyond what the product actually does |
 | **Logo concept** | A rounded "C" drawn as a single coiled copper wire, with one end rough and jagged (raw ore) and the other end smooth and polished (refined). Wordmark "copper state labs" in lowercase rounded sans-serif |
-| **Mascot** | **Copper the robot:** a friendly, rounded robot with a polished copper body, a yellow hard hat with a small headlamp, patina-teal accents at the joints, and big round LED eyes. Usually holds a clipboard. Must be an original design and must not resemble any famous robot character. |
+| **Mascot** | **Copper the robot:** a friendly, rounded robot with a polished copper body, a yellow hard hat with a small headlamp, patina-teal accents at the joints, and big round LED eyes. Usually holds a clipboard. |
 | **Primary colors** | Copper `#B87333`, Patina Teal `#4A8C82` (the green color copper turns as it ages) |
 | **Secondary colors** | Desert Sand `#EFE3D0`, Sonoran Sunset `#E8663D`, Night Sky `#1C2333`, Hard-Hat Yellow `#F2C230` |
 | **Typography** | Rounded geometric sans-serif for headings; clean humanist sans-serif for body text |
@@ -102,17 +90,16 @@ Copper is Copper State Labs' voice assistant: practical, dependable, and quietly
 
 **Positioning:** The desert-smart assistant for the whole household. It answers questions, runs the smart home, remembers what matters, and keeps an eye on the Arizona weather.
 
-**Visual description (for image generation):**
+**Visual description:**
 - A rounded speaker shaped like a smooth desert river stone, wider than tall, about the size of a large grapefruit
 - Wrapped in soft woven fabric, with a **polished copper base ring**
 - Fabric colors: Polished Copper (a warm copper-toned fabric), Patina Teal, or Night Sky
 - A **3-inch round display** set into the upper front, showing the time, weather, and a small animated copper-robot icon when listening
 - A thin **light ring** around the display:
   - soft white when idle
-  - sonoran orange while listening
-  - patina teal while thinking
+  - Sonoran Sunset orange while listening
+  - Patina Teal while thinking
 - A physical **mute slider** on the back; when muted, a small **red privacy light** glows on the front
-- Must look original. **Do not** resemble any real smart speaker (no cylinders, spheres, or famous fabric towers).
 
 **Signature features:**
 - **Conversational assistant:** ask questions in plain English or Spanish
@@ -122,9 +109,9 @@ Copper is Copper State Labs' voice assistant: practical, dependable, and quietly
 - **Haboob Alert:** warns about incoming dust storms and reminds you to close windows
 - **Heat Check:** alerts when it's dangerously hot, reminds you to bring pets inside and check the back seat before leaving the car
 - **Snowbird Mode:** pauses routines and checks in on the house while you're away for the summer
-- **Arizona time:** handles Arizona's no-daylight-saving time correctly (see the trap in Section 11)
+- **Arizona time:** handles Arizona's no-daylight-saving time correctly (fixed in Copper 2.1; see Section 7)
 
-**How the AI works (important for the economics lessons):**
+**How the AI works:**
 
 | Request type | Tier | Example |
 |---|---|---|
@@ -138,8 +125,8 @@ A **router** decides which tier handles each request. On Copper Plus households,
 
 | Indicator | Meaning |
 |---|---|
-| Light ring sonoran orange | Listening |
-| Light ring patina teal, swirling | Thinking (cloud request in progress) |
+| Light ring Sonoran Sunset orange | Listening |
+| Light ring Patina Teal, swirling | Thinking (cloud request in progress) |
 | Light ring flashing blue | Setup mode |
 | **Red privacy light** | Microphones are off (mute slider on) |
 | Light ring red, flashing | Error (see error codes) |
@@ -148,7 +135,7 @@ A **router** decides which tier handles each request. On Copper Plus households,
 
 **Factory reset:** Hold the **volume-down button and the action button together for 15 seconds** until the light ring flashes red three times.
 
-**Known customer complaints (for review datasets):**
+**Known customer complaints:**
 - Wakes up when it hears something that sounds like "Hey Copper" on TV
 - Gave confidently wrong answers (especially before Copper 2.2)
 - Got the time wrong for Arizona users before Copper 2.1
@@ -162,14 +149,13 @@ A **router** decides which tier handles each request. On Copper Plus households,
 
 **Positioning:** Never take notes again. Clip it on, and Copper turns your meetings, lectures, and ideas into clear summaries and to-do lists.
 
-**Visual description (for image generation):**
+**Visual description:**
 - A small rounded-square device about 1.5 inches across
 - Finishes: Brushed Copper, Desert Sand, or Night Sky
 - A **magnetic clip** on the back, so it clips to a shirt, bag strap, or lanyard
 - A single **recording ring light** on the front that glows warm amber whenever it is recording, so everyone nearby can see
 - One touch-sensitive button in the center: tap to start/stop, double-tap to pause
 - Comes with a small round copper-colored charging puck
-- Must look original. **Do not** resemble any real AI pin, pendant, or wearable recorder.
 
 **Signature features:**
 - **Meeting Mode:** summaries, decisions, and action items
@@ -179,7 +165,7 @@ A **router** decides which tier handles each request. On Copper Plus households,
 - **On-device transcription:** the recording is transcribed on the device; only the text goes to the cloud for summarizing
 - Summaries appear in the Copper app and can be shared
 
-**How the AI works (important for the economics lessons):**
+**How the AI works:**
 
 | Task | Tier | Cost profile |
 |---|---|---|
@@ -201,7 +187,7 @@ A **router** decides which tier handles each request. On Copper Plus households,
 
 **Factory reset:** Hold the center button for **20 seconds** while the device is on the charging puck, until the ring flashes red twice.
 
-**Known customer complaints (for review datasets):**
+**Known customer complaints:**
 - The amber recording light is hard to see in bright Arizona sunlight (see Known Issues, Section 9)
 - Summaries sometimes credit the wrong person for a decision
 - Overheats if left on a car dashboard (error C-63)
@@ -234,7 +220,7 @@ A **router** decides which tier handles each request. On Copper Plus households,
 
 ## 5. Unit Economics Sheet (illustrative, fictional)
 
-> Use these numbers in Module 1 (value vs. cost), Module 2 (cost per call), and especially Module 7 (pricing and margins). They are designed so the math works out cleanly and creates real tradeoffs. **They are not real market prices.**
+> Internal figures. **They are not real market prices.**
 
 ### 5.1 Cost per AI request
 
@@ -264,7 +250,7 @@ A **router** decides which tier handles each request. On Copper Plus households,
 | Cost to build (parts + assembly) | $68 | $41 |
 | Gross margin per device | $81 | $88 |
 
-### 5.4 The big economic tensions (discussion starters)
+### 5.4 Open business questions
 
 - **Copper Notes is cheap to run**, because most of its AI happens on the device. Its cloud costs barely change no matter how much someone uses it.
 - **A free Copper Home still costs $1.50/month forever**, with no subscription revenue. How many years of free use does the $81 hardware margin cover?
@@ -306,7 +292,7 @@ A **router** decides which tier handles each request. On Copper Plus households,
 - Copper Notes recordings are transcribed on the device; **transcripts and summaries** are stored for 30 days on free and 12 months on Copper Plus.
 - Users can view and delete recordings, transcripts, and Household Memory anytime in the Copper app.
 - Copper State Labs does not sell recordings, and does not use customer recordings to train models unless the customer opts in.
-- **Recording others:** Copper Notes owners are responsible for following local recording-consent laws. Some states require everyone in a conversation to agree to being recorded. *(Instructor note: keep this as a discussion topic, not legal guidance.)*
+- **Recording others:** Copper Notes owners are responsible for following local recording-consent laws. Some states require everyone in a conversation to agree to being recorded.
 
 ---
 
@@ -355,86 +341,3 @@ A **router** decides which tier handles each request. On Copper Plus households,
 | On-device | Device | 0.000 | 0.000 | Free, Copper Plus |
 | Raw Ore | Copper Cloud | 0.002 | 0.004 | Free, Copper Plus |
 | Refined | Copper Cloud (frontier models) | 0.020 | 0.030 | Copper Plus only |
-
----
-
-## 11. Deliberate Traps (keep these exactly as written)
-
-These traps drive the learning in the class examples. **Do not "fix" them when generating assets.**
-
-| Trap | Where it lives | Used in |
-|---|---|---|
-| Old 2024 privacy policy (18 months for everyone) still in the document set | Privacy Policy (OLD) | M3: outdated-document trap |
-| Marketing FAQ says "Copper never records you" (official policy: saved after the wake word) | Marketing FAQ page | M3: conflicting-sources trap; M7 trust discussion |
-| C-31 and C-63 are Copper Notes only; C-47 is Copper Home only | Troubleshooting guide | M3: exact-code / keyword search trap |
-| Arizona time bug fixed in Copper 2.1 (including the Navajo Nation exception) | Release notes | M2 sarcastic reviews ("missed my dentist appointment"); M3 version-specific question |
-| Confidently wrong answers reduced in Copper 2.2 | Release notes | M2 "AI hallucination" review category; M5 regression discussion |
-| Setup and reset steps differ by product | Each user manual | M3: product-specific answers + short-term memory |
-| Plan details (prices, memory days, Notes hours) live in the `plans` table | Database | M3: database-lookup-beats-search trap |
-| Copper Plus refund exceptions and Known Issues are supervisors only | Internal documents | M3: permission trap |
-| "Hey, shopper!" false wake appears in reviews AND the Known Issues Tracker | Reviews + Known Issues | M2: wake-word category; M3 permissions |
-| Hard-to-see recording light appears in reviews AND the Known Issues Tracker | Reviews + Known Issues | M2 privacy flag; **M7 Mindful AI: should customers be told now?** |
-| Heavy Copper Plus users cost more than they pay | Unit Economics Sheet | M1, M2, **M7 pricing** |
-| Nothing in any document mentions future products or Copper 2.4's release date | All documents | M3: "I don't know" trap |
-
----
-
-## 12. Review Dataset Guidance (Module 2: Review Radar)
-
-**Review categories:** answer accuracy, wake word & listening, privacy & recording, voice recognition, smart home, summaries & transcription, battery & charging, setup & app, subscription & price, customer service.
-
-**Products for the `product` field:** Copper Home, Copper Notes, Copper Plus, unknown.
-
-**Trap types to include (2+ reviews each), with sample tone:**
-
-| Trap | Sample review (synthetic) |
-|---|---|
-| Sarcasm | "Love how Copper 'sprang forward' in Arizona. Missed my dentist appointment. Ten stars." |
-| Mixed | "Copper Notes' meeting summaries are amazing but it labeled my boss's idea as mine. Awkward." |
-| AI hallucination | "Asked Copper when my flight was and it confidently said 3pm. It was 1pm." |
-| Privacy (flag) | "Copper Home woke up during a private family conversation and started talking. Creepy." |
-| Safety (flag) | "Left my Copper Notes in the car for an hour in Gilbert and it got scary hot." |
-| Legal threat (flag) | "Someone recorded our HOA meeting with a Copper Notes without telling anyone. Our attorney is involved." |
-| Child safety (flag) | "My 8-year-old asked Copper a question and the answer was not okay for a kid." |
-| Over-flagging slang | "Monsoon Mode is fire 🔥 saved my yard from flooding" |
-| Feature request | "Wish Copper Notes' battery lasted a full conference day." |
-| Subscription value | "Copper Plus isn't worth $8 a month if you just use timers." |
-| Wake word | "Every time that grocery ad comes on, Copper wakes up. 'Hey, shopper!' Really?" |
-| Unknown product | "Ordered three weeks ago, still nothing." |
-| Personal data | "Call me at 480-555-0177, order #CS-55190, my Copper Home won't connect. — Ana R." |
-| Spanish | "Copper entiende muy bien español pero a veces se activa solo con la tele." |
-| Star mismatch | 5 stars: "Returned it. Couldn't stop it from waking up during my shows." |
-
----
-
-## 13. Asset Checklist
-
-| Asset | Module | Approx. size | Notes |
-|---|---|---|---|
-| Logo, mascot, and brand board | All | 1–2 pages | From Section 2 |
-| Product images (hero + lifestyle) for Copper Home and Copper Notes | All | 2–3 per product | From Section 4; Arizona settings |
-| Unit Economics Sheet (spreadsheet) | M1, M2, M7 | 1 sheet | From Section 5; keep the math exact |
-| 60 synthetic customer reviews + answer key | M2 | 60 reviews | From Section 12 |
-| Copper Home user manual | M3 | ~20 pages | Setup, reset, indicators, Monsoon Mode, Haboob Alert, Heat Check, Snowbird Mode, C-47 |
-| Copper Notes user manual | M3 | ~15 pages | Setup, reset, indicators, Consent Chime, modes, C-31, C-63 |
-| Troubleshooting guide | M3 | ~10 pages | All error codes from Section 6 |
-| Copper release notes | M3 | ~5 pages | From Section 7 |
-| Privacy Policy (OLD, 2024) | M3 | 3 pages | Trap: 18 months for everyone |
-| Privacy Policy (CURRENT, 2026) | M3 | 4 pages | From Section 8 |
-| Warranty, Returns, and Copper Plus Terms | M3 | 2 pages each | From Section 9 |
-| Marketing FAQ page | M3 | 3 pages | Trap: "Copper never records you" |
-| Copper Plus Refund Exceptions Playbook (supervisors only) | M3 | 2 pages | From Section 9 |
-| Known Issues Tracker (supervisors only) | M3 | 2 pages | From Section 9 |
-| Database seed data | M3 | 4 tables | From Section 10 |
-| 20-question support golden set + answer key | M3 | 20 items | One or more questions per trap in Section 11 |
-
----
-
-## 14. Example Requests to Give Claude
-
-- *"Using the attached Copper State Labs Product Bible, create a lifestyle image of Copper Home in Patina Teal on a Phoenix kitchen counter at golden hour, with monsoon clouds visible through the window. Follow the visual description in Section 4.1 exactly, and make sure the design is original and doesn't resemble any real smart speaker."*
-- *"Using the attached Product Bible, design the Copper robot mascot from Section 2: a friendly, rounded robot with a polished copper body, a yellow hard hat with a headlamp, and patina-teal accents. Make it original; it must not resemble any famous robot character."*
-- *"Using the attached Product Bible, build the Unit Economics Sheet from Section 5 as a spreadsheet with formulas, so I can change the Refined routing percentage and see the margin change."*
-- *"Using the attached Product Bible, write the full Copper Notes user manual (about 15 pages), including the Consent Chime, all three modes, the indicator table, and error codes C-31 and C-63 exactly as specified. Label it 'Fictional — for educational use.'"*
-- *"Using the attached Product Bible, generate 60 synthetic customer reviews with an answer key in JSON, following the categories and trap types in Section 12."*
-- *"Using the attached Product Bible, write both privacy policies (2024 and 2026). Keep the 2024 policy's 18-month retention exactly; it's an intentional outdated document."*
