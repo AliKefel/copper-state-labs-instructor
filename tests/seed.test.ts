@@ -67,7 +67,7 @@ describe("Supabase migrations and seed", () => {
     );
     expect(rows.map((r) => r.column_name)).toEqual(
       expect.arrayContaining([
-        "week",
+        "module",
         "feature",
         "model",
         "input_tokens",

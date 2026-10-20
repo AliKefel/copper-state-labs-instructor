@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import Home from "@/app/page";
 
-// Only what every version of the home page keeps: the placeholder (Week 0)
+// Only what every version of the home page keeps: the placeholder (Module 0)
 // and the landing page (Module 1 on). Module specs test the rest.
 describe("Home page", () => {
   it("shows the logo", () => {

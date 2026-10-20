@@ -1,8 +1,8 @@
-# Teaching guide: Copper State Labs base repo
+# Teaching guide: Copper State Labs course app
 
 _For the instructor and TAs. Don't share this file with students._
 
-This guide covers what's in the base repo, what to set up before Week 0, how modules are released and checked, and the problems students are most likely to hit. The full requirements are in [`spec.md`](spec.md); the student walkthrough is [`student_instruction.md`](student_instruction.md).
+This guide covers what's in the base repo, what to set up before Module 0, how modules are released and checked, and the problems students are most likely to hit. The full requirements are in [`docs/starter-app.md`](../starter-app.md); the student walkthrough is [`specs/module-0/instructions.md`](../../specs/module-0/instructions.md). The Product Bible's deliberate traps and the asset-generation guidance are in [`product-bible-traps.md`](product-bible-traps.md). Each module's own notes are in `specs/module-N/teaching.md`.
 
 ---
 
@@ -36,11 +36,10 @@ To add or change a model, edit both files. `tests/ai.test.ts` fails if a model h
 
 ---
 
-## 2. Before Week 0: setup checklist
+## 2. Before Module 0: setup checklist
 
-- [ ] **Set the Deploy button URL** in `README.md`: replace `REPLACE_WITH_STUDENT_REPO_URL` with the student-facing course repo.
 - [ ] **Create the student-facing course repo.** This repo is the instructor repo and will hold solutions, so students clone from a separate one. Publish the `module-0` branch to it.
-- [ ] **Fill in `COURSE_REPO_URL`** in `student_instruction.md` (or post it in Canvas).
+- [ ] **Fill in `COURSE_REPO_URL`** in `specs/module-0/instructions.md` (or post it in Canvas). The course repo's `main` README already has the real clone URL.
 - [ ] **Check that branch names match.** The student instructions use `git clone --branch module-0`. Use the same naming for every module branch.
 - [ ] **Do a dry run with a test GitHub account:** clone, `npm run start-module`, `npm ci`, `npm run dev`, change the Week 0 line, `npm run check` (2 of 2), push, deploy on Vercel. This also confirms criteria 9 and 10.
 - [ ] **Confirm criterion 5 once** with real keys: put `AI_GATEWAY_API_KEY`, the Supabase URL and publishable key, and `SUPABASE_DB_URL` in `.env.local`, run `npm run db:migrate`, then `npm test`. The live test in `tests/ai.integration.test.ts` stops being skipped and checks the `ai_calls` row.
@@ -75,7 +74,8 @@ Because every module starts from the previous solution, a student who didn't fin
 4. Name every test after its criterion: `it("AC-N.x <what it checks>", …)`. A criterion passes only if **all** tests with that ID pass. Tests without an ID are ignored by `check`.
 5. Add starter stubs (TODOs) for what students will build.
 6. **Check that the tests fail on the starter and pass on your solution.** If a test passes on the starter, it isn't testing the assignment.
-7. If you fix something in an earlier branch, carry the fix forward with `git rebase --update-refs` from the last branch.
+7. If you fix something in an earlier branch, carry the fix forward by merging each branch into the next (`base-repo` → `module-0-solution` → `module-1-starter` → `module-1-solution` → …). Use merges, not rebases: the published student branches are copies of these.
+8. **Publish** the starter to the student-facing course repo as its `module-N` branch, without the instructor-only files: `docs/teaching/` and every `specs/*/teaching.md`. Then check `git ls-files | grep -iE "teaching|solution"` prints nothing. Compare with `git diff --stat <instructor starter> <student branch>`: only those files should differ.
 
 ### What `npm run check` does
 
@@ -84,7 +84,7 @@ Because every module starts from the previous solution, a student who didn't fin
 - Prints a ✅/❌ line per criterion ID with its rubric points, a ⏳ line for rubric rows checked only when grading (like `DEPLOY`), and a summary like `3 of 4 criteria passed.` / `25 of 30 points from tests`. It exits non-zero if anything fails, and lists any test file that couldn't run (for example, a syntax error).
 - `npm test` and CI **skip `specs/`**, so a student's unfinished module doesn't turn CI red.
 
-`specs/module-0-sample/` is both the demo and the Week 0 task: AC-0.1 passes on a fresh clone, and AC-0.2 passes once the student changes the Week 0 line.
+`specs/module-0/` is both the demo and the Module 0 task: AC-0.1 passes on a fresh clone, and AC-0.2 passes once the student changes the Week 0 line.
 
 ### Evals
 
@@ -116,7 +116,7 @@ Use plain `npm run grade` only on repos you trust, such as the fake students in 
 
    The grader only reads students' public repos and their deployment records, so this token can't change anything, even if it leaks. Don't use your own login token (`gh auth token`): that one can push to and delete your repos.
 3. **Store the token outside the repo**, for example in your password manager or in `~/cis591/grading-token` with `chmod 600`.
-4. **Make the roster** (keep it outside the repo): a CSV with columns `name`, `github` and optional `vercel_url`. Use the Vercel link from each student's Week 0 submission; it's only used if GitHub has no deployment record.
+4. **Make the roster** (keep it outside the repo): a CSV with columns `name`, `github` and optional `vercel_url`. Use the Vercel link from each student's Module 0 submission; it's only used if GitHub has no deployment record.
 
 ### Grading a module
 
@@ -235,7 +235,7 @@ A custom check that runs student code must run it as the student's user: pass `u
 - **Commit times come from git**, which a determined student can backdate. If a late submission looks suspicious, compare with the push time shown on GitHub.
 - **Students can game their own tests.** Tests run in the same process as the student's code, so a student who knows how could make their own tests report a pass. The container stops them from affecting anyone else's grade, but not their own. The code would be in their public repo; if a score looks too good for what the app does, read the code or open their Vercel site.
 - **Hidden tests are visible to student code while it's graded**, because they run alongside it. Treat them as a deterrent for one term, not a secret forever.
-- **Cost evidence:** every AI call is in the student's `ai_calls` table (week, feature, model, tokens, cost, latency, ok). Useful for Module 2 (cost per call) and Module 7 (pricing).
+- **Cost evidence:** every AI call is in the student's `ai_calls` table (module, feature, model, tokens, cost, latency, ok). Useful for Module 2 (cost per call) and Module 7 (pricing).
 
 ---
 
@@ -243,8 +243,8 @@ A custom check that runs student code must run it as the student's user: pass `u
 
 | What you'll see | Why |
 |---|---|
-| The Product Bible contradicts itself (old 2024 privacy policy, "Copper never records you" FAQ) | Deliberate traps for Modules 2, 3 and 7 (Bible §11). `AGENTS.md` tells agents never to fix them |
-| `npm run check` fails on a fresh clone | AC-0.2 is the Week 0 task; it passes once the student edits the line |
+| The Product Bible contradicts itself (old 2024 privacy policy, "Copper never records you" FAQ) | Deliberate traps for Modules 2, 3 and 7 (listed in `docs/teaching/product-bible-traps.md`). `AGENTS.md` tells agents never to fix them |
+| `npm run check` fails on a fresh clone | AC-0.2 is the Module 0 task; it passes once the student edits the line |
 | `AGENTS.md` ends with a "This is NOT the Next.js you know" block | Next.js 16 writes this block on every `npm run dev`. It's committed so the working tree stays clean. Edit only the rules above it |
 | `components/ui/field.tsx` instead of `form.tsx` | `form` is an empty placeholder in the current shadcn style; `field` is its replacement and works with react-hook-form |
 | `npm audit` reports 5 high-severity issues | All come from one advisory (`braces`) in the dev-only ESLint packages. The only offered fix downgrades ESLint for Next 14 |
@@ -258,7 +258,9 @@ A custom check that runs student code must run it as the student's user: pass `u
 | Problem | Fix |
 |---|---|
 | `start-module`: "log in to GitHub first" | `gh auth login` |
-| `start-module`: "already set up" | It ran before. Their repo exists; continue |
+| `start-module` stopped with an error | Fix what the message says and run it again; it picks up where it stopped |
+| `start-module`: "already set up" | It finished before. Their repo exists; continue |
+| `start-module`: "could not push" | They already have a `copper-mN` with other work in it. Delete it on GitHub and run again |
 | Wrong Node version / odd install errors | `node --version` must be 24. Then `rm -rf node_modules && npm ci` |
 | Ran `npx ai-elements` without `add` | It installs the whole library (about 60 files). Undo with `git checkout -- package.json package-lock.json components/`, then delete the new untracked files `git status` lists, keeping any the student wrote themselves |
 | "Set up Supabase / the AI gateway to use this page" | Expected until they add the variables to `.env.local` **and** to Vercel, then restart the dev server |
@@ -272,7 +274,7 @@ A custom check that runs student code must run it as the student's user: pass `u
 ## 7. Security and privacy notes
 
 - **Student repos are public.** Remind students never to paste keys into code; bots find leaked keys within minutes. Some schools require consent or an opt-out for public coursework; check your institution's policy.
-- **No row-level security until Week 6.** Anyone with the publishable key (which ships to the browser) can read the Bible tables and read or insert `ai_calls` rows. That's acceptable for fictional data, but tell students not to store anything personal before Week 6.
+- **No row-level security until a later module.** Anyone with the publishable key (which ships to the browser) can read the Bible tables and read or insert `ai_calls` rows. That's acceptable for fictional data, but tell students not to store anything personal until then.
 - **`SUPABASE_DB_URL` and `AI_GATEWAY_API_KEY` are secrets.** They belong only in `.env.local` and Vercel. `.gitignore` ignores `.env*`, and `.claude/settings.json` blocks Claude Code from reading them.
 - **The gateway key spends money.** Suggest students set a spending limit in the Vercel AI Gateway dashboard. The default model is the cheapest one.
 - **Grade only with `npm run grade:docker`** and the read-only grading token (section 4). Plain `npm run grade` runs students' code with your full access.
@@ -287,4 +289,4 @@ A custom check that runs student code must run it as the student's user: pass `u
 - **Adding shadcn components:** `npx shadcn@4.21.4 add <name>`. **AI Elements:** `npx ai-elements@1.9.0 add <name>`, always naming the components.
 - **Theme contrast:** button text (Night Sky) on Copper is 4.14:1, below the 4.5:1 guideline for small text. If you want full compliance, use `#A6672E` for `--primary` in `app/globals.css` and raise the threshold in `tests/theme.test.ts`.
 - **Schema changes** go in a new file in `supabase/migrations/`. `tests/seed.test.ts` runs every migration and the seed in PGlite, so database tests need no Docker or Supabase account.
-- **After changing the base**, rebase the module chain (`git rebase --update-refs`) and re-check that each module's tests still fail on its starter and pass on its solution.
+- **After changing the base**, merge it forward through the module chain and re-check that each module's tests still fail on its starter and pass on its solution.

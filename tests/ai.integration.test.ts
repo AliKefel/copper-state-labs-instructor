@@ -20,7 +20,7 @@ describe.skipIf(!ready)("AI call logging (live gateway + Supabase)", () => {
     const feature = `integration-test-${Date.now()}`;
 
     await callText(
-      { week: 0, feature },
+      { module: 0, feature },
       { prompt: "Reply with the word copper." },
     );
 
