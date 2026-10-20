@@ -20,8 +20,8 @@ export function isAiConfigured(): boolean {
   return Boolean(process.env.AI_GATEWAY_API_KEY);
 }
 
-/** Which week and feature made the call, for the ai_calls log. */
-export type CallInfo = { week: number; feature: string; model?: ModelId };
+/** Which module and feature made the call, for the ai_calls log. */
+export type CallInfo = { module: number; feature: string; model?: ModelId };
 
 // Omit that keeps generateText's "prompt or messages" union intact.
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown
@@ -33,7 +33,7 @@ type TextOptions = DistributiveOmit<
 >;
 
 export type AiCallRow = {
-  week: number;
+  module: number;
   feature: string;
   model: ModelId;
   input_tokens: number | null;
@@ -70,7 +70,7 @@ async function tracked<
     const input = usage?.inputTokens ?? null;
     const output = usage?.outputTokens ?? null;
     return {
-      week: info.week,
+      module: info.module,
       feature: info.feature,
       model,
       input_tokens: input,
@@ -94,7 +94,7 @@ async function tracked<
   }
 }
 
-/** Generates text. Example: callText({ week: 2, feature: "review-radar" }, { prompt }) */
+/** Generates text. Example: callText({ module: 2, feature: "review-radar" }, { prompt }) */
 export async function callText(info: CallInfo, options: TextOptions) {
   return tracked(info, (model) =>
     generateText({ ...options, model: languageModel(model) }),

@@ -1,8 +1,8 @@
 # specs/
 
 Each module of the course has a folder here, named `module-N` (for example
-`module-2`). `base/` is the spec for this starter app, and `module-0-sample/`
-shows how `npm run check` works.
+`module-2`). `module-0/` sets up the starter app. The starter app's own spec
+is [`docs/starter-app.md`](../docs/starter-app.md).
 
 ## What's in a module folder
 

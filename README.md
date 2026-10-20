@@ -4,9 +4,11 @@ The starter app for CIS 591. Copper State Labs is a fictional Arizona company
 (see the [Product Bible](docs/copper-state-labs/product-bible.md)); each module
 adds a feature to this one app.
 
-_Fictional — for educational use._
+**Start here:** [Module 0 instructions](specs/module-0/instructions.md).
+The [`docs/`](docs/README.md) folder explains the company and how the app fits
+together; [`specs/`](specs/README.md) holds each module's work.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=REPLACE_WITH_STUDENT_REPO_URL)
+_Fictional — for educational use._
 
 The app builds and runs with **no environment variables**. Pages that need
 Supabase or the AI gateway show a "Set up …" card until you add them.

@@ -14,14 +14,13 @@ describe("npm run check", () => {
     expect(
       checkPaths(2, [
         "README.md",
-        "base",
-        "module-0-sample",
+        "module-0",
         "module-1",
         "module-2",
         "module-3",
       ]),
     ).toEqual([
-      "specs/module-0-sample/tests",
+      "specs/module-0/tests",
       "specs/module-1/tests",
       "specs/module-2/tests",
       "specs/module-2/evals",

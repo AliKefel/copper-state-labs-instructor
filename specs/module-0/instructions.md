@@ -1,4 +1,4 @@
-# Week 0: Set up the Copper State Labs app
+# Module 0: Set up the Copper State Labs app
 
 _Fictional — for educational use._
 
@@ -53,7 +53,7 @@ gh auth status   # should say you're logged in
    - creates a **public** repo called `copper-m0` on your GitHub account and pushes the code to it. It's public so your instructor can grade it and you can show it to employers
    - keeps the course repo connected under the name `course`
 
-   Run it **only once**. If it stops with an error, read the message: it tells you what to fix (for example, `gh auth login`).
+   If it stops with an error, read the message, fix what it says (for example, run `gh auth login`), and run it again. It picks up where it stopped.
 
 3. Install the app's packages:
 
@@ -94,11 +94,11 @@ Module 0: acceptance criteria
 
 One failure is expected: that's your task. `DEPLOY` is checked when your instructor grades: it looks for your live Vercel site (Step 6).
 
-## Step 4: Your Week 0 task
+## Step 4: Your Module 0 task
 
 Change the Week 0 line to say something about you.
 
-1. Open `app/page.tsx`. Find the line marked `{/* WEEK 0: change this line */}`.
+1. Open `app/page.tsx`. Find the line marked `{/* MODULE 0: change this line */}`.
 2. Replace `Week 0 check-in: Hello from Copper State Labs!` with your own sentence. For example: `Week 0 check-in: Hi, I'm Jordan and I'm excited to build with AI.`
 3. Save, then check your work:
 
@@ -115,7 +115,7 @@ Change the Week 0 line to say something about you.
 
 ```bash
 git add app/page.tsx
-git commit -m "Week 0: personalize the check-in line"
+git commit -m "Module 0: personalize the check-in line"
 git push
 ```
 
@@ -174,7 +174,8 @@ The repo comes set up for Claude Code and Codex.
 |---|---|
 | `node --version` isn't v24 | Install Node 24 from nodejs.org, or run `nvm use` if you have nvm |
 | `npm run start-module` says to log in | Run `gh auth login` and choose GitHub.com and HTTPS |
-| `npm run start-module` says "already set up" | It already ran. Your repo exists; carry on with `npm ci` |
+| `npm run start-module` says "already set up" | It already finished. Your repo exists; carry on with `npm ci` |
+| `npm run start-module` says it could not push | You already have a `copper-m0` repo with other work in it. Delete it on GitHub (Settings > Delete this repository) and run the command again |
 | Port 3000 is in use | Stop the other server, or run `npm run dev -- -p 3001` |
 | `npm run check` shows "could not run" | Something in your code doesn't compile. Run `npm run typecheck` to find it |
 | Vercel build fails | Run `npm run build` on your computer and fix the first error it shows |
