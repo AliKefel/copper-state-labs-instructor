@@ -42,7 +42,7 @@ describe("Agent harness", () => {
     "components/ui",
     "lib/ai/call.ts",
     ".env",
-    "Section 11",
+    "conflicting or outdated facts in the Product Bible",
     "specs/*/tests",
   ])("AGENTS.md covers %s", (rule) => {
     expect(agents).toContain(rule);

@@ -1,6 +1,6 @@
 -- Base schema for the Copper State Labs course app.
 -- The four Product Bible tables match Bible Section 10. No row-level security
--- yet: authentication and RLS arrive in Week 6.
+-- yet: authentication and RLS arrive in a later module.
 
 create extension if not exists vector;
 

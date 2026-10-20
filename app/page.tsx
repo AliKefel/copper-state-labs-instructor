@@ -10,7 +10,7 @@ export default function Home() {
         <p className="text-muted-foreground text-lg">
           Our new site is under construction.
         </p>
-        {/* WEEK 0: change this line */}
+        {/* MODULE 0: change this line */}
         <p
           data-testid="week-0-line"
           className="bg-secondary text-secondary-foreground rounded-lg px-4 py-2"

@@ -5,9 +5,9 @@ import { describe, expect, it } from "vitest";
 const read = (path: string) => readFileSync(path, "utf8");
 
 describe("Delivery files", () => {
-  it("README has the Deploy button, setup steps and every environment variable", () => {
+  it("README has setup steps and every environment variable, and no Deploy button", () => {
     const readme = read("README.md");
-    expect(readme).toContain("https://vercel.com/new/clone?repository-url=");
+    expect(readme).not.toContain("vercel.com/new/clone");
     for (const variable of [
       "AI_GATEWAY_API_KEY",
       "NEXT_PUBLIC_SUPABASE_URL",
@@ -39,7 +39,10 @@ describe("Delivery files", () => {
 
   it.each([
     "docs/copper-state-labs/product-bible.md",
-    "docs/architecture-template.md",
+    "docs/README.md",
+    "docs/architecture.md",
+    "docs/starter-app.md",
+    "specs/module-0/instructions.md",
     "specs/README.md",
     "course.config.json",
   ])("%s exists", (path) => {

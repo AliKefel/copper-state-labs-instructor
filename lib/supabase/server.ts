@@ -24,7 +24,7 @@ export async function createClient() {
             cookieStore.set(name, value, options),
           );
         } catch {
-          // Server Components can't set cookies; safe to ignore until auth (Week 6).
+          // Server Components can't set cookies; safe to ignore until auth is added in a later module.
         }
       },
     },

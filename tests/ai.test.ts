@@ -75,7 +75,7 @@ describe("lib/ai/call.ts", () => {
     model = replyWith("Hello from Copper");
     const result = await callText(
       {
-        week: 2,
+        module: 2,
         feature: "review-radar",
         model: "anthropic/claude-sonnet-5.5",
       },
@@ -85,7 +85,7 @@ describe("lib/ai/call.ts", () => {
     expect(insert).toHaveBeenCalledTimes(1);
     const row = insert.mock.calls[0][0];
     expect(row).toMatchObject({
-      week: 2,
+      module: 2,
       feature: "review-radar",
       model: "anthropic/claude-sonnet-5.5",
       input_tokens: 1000,
@@ -101,7 +101,7 @@ describe("lib/ai/call.ts", () => {
     model = replyWith('{"category":"wake word","flag":false}');
     vi.spyOn(console, "info").mockImplementation(() => {});
     const result = await callObject(
-      { week: 2, feature: "classify-review" },
+      { module: 2, feature: "classify-review" },
       {
         prompt: "Classify this review",
         schema: z.object({ category: z.string(), flag: z.boolean() }),
@@ -114,7 +114,7 @@ describe("lib/ai/call.ts", () => {
     model = replyWith("ok");
     const info = vi.spyOn(console, "info").mockImplementation(() => {});
     await expect(
-      callText({ week: 1, feature: "test" }, { prompt: "hi" }),
+      callText({ module: 1, feature: "test" }, { prompt: "hi" }),
     ).resolves.toBeDefined();
     expect(insert).not.toHaveBeenCalled();
     expect(info).toHaveBeenCalledWith(
@@ -126,7 +126,7 @@ describe("lib/ai/call.ts", () => {
   it("uses Claude Haiku 5.5 when no model is given", async () => {
     supabaseConfigured = true;
     model = replyWith("ok");
-    await callText({ week: 1, feature: "test" }, { prompt: "hi" });
+    await callText({ module: 1, feature: "test" }, { prompt: "hi" });
     expect(insert.mock.calls[0][0].model).toBe("anthropic/claude-haiku-5.5");
   });
 
@@ -138,7 +138,7 @@ describe("lib/ai/call.ts", () => {
       },
     });
     await expect(
-      callText({ week: 1, feature: "test" }, { prompt: "hi", maxRetries: 0 }),
+      callText({ module: 1, feature: "test" }, { prompt: "hi", maxRetries: 0 }),
     ).rejects.toThrow("gateway down");
     expect(insert.mock.calls[0][0]).toMatchObject({
       ok: false,
@@ -153,7 +153,7 @@ describe("lib/ai/call.ts", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     model = replyWith("still ok");
     const result = await callText(
-      { week: 1, feature: "test" },
+      { module: 1, feature: "test" },
       { prompt: "hi" },
     );
     expect(result.text).toBe("still ok");
@@ -164,7 +164,7 @@ describe("lib/ai/call.ts", () => {
     vi.stubEnv("AI_GATEWAY_API_KEY", "");
     expect(isAiConfigured()).toBe(false);
     await expect(
-      callText({ week: 1, feature: "test" }, { prompt: "hi" }),
+      callText({ module: 1, feature: "test" }, { prompt: "hi" }),
     ).rejects.toBeInstanceOf(AiNotConfiguredError);
   });
 });
