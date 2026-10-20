@@ -3,8 +3,10 @@ import { execFileSync, spawnSync } from "node:child_process";
 import {
   chmodSync,
   copyFileSync,
+  existsSync,
   mkdirSync,
   readFileSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
@@ -14,17 +16,24 @@ import { tempDir } from "./helpers/temp-dir";
 const script = join(process.cwd(), "scripts/start-module.sh");
 
 // A throwaway clone of a "module-3" branch, plus a fake `gh` that records its
-// arguments instead of talking to GitHub.
-function setup() {
+// arguments instead of talking to GitHub. The student's "GitHub" repo is a
+// local bare repo, which exists once `gh repo create` has run.
+function setup({ failCreate = false, exists = false } = {}) {
   const root = tempDir("start-module-");
   const course = join(root, "course.git");
+  const student = join(root, "student.git");
   const clone = join(root, "clone");
   const bin = join(root, "bin");
   const log = join(root, "gh.log");
+  const created = join(root, "created");
+  const failFlag = join(root, "fail-create");
   const git = (cwd: string, ...args: string[]) =>
     execFileSync("git", args, { cwd, stdio: "pipe" });
 
   git(root, "init", "--bare", "-q", course);
+  git(root, "init", "--bare", "-q", student);
+  if (exists) writeFileSync(created, "");
+  if (failCreate) writeFileSync(failFlag, "");
   mkdirSync(clone);
   git(clone, "init", "-q", "-b", "module-3");
   git(clone, "remote", "add", "origin", course);
@@ -49,7 +58,17 @@ function setup() {
   mkdirSync(bin);
   writeFileSync(
     join(bin, "gh"),
-    `#!/bin/sh\necho "gh $*" >> "${log}"\n[ "$1 $2" = "api user" ] && echo student-1\nexit 0\n`,
+    [
+      "#!/bin/sh",
+      `echo "gh $*" >> "${log}"`,
+      'case "$1 $2" in',
+      '  "api user") echo student-1 ;;',
+      `  "repo view") [ -f "${created}" ] || exit 1; case "$*" in *--json*) echo "${student}" ;; esac ;;`,
+      `  "repo create") [ -f "${failFlag}" ] && exit 1; touch "${created}" ;;`,
+      "esac",
+      "exit 0",
+      "",
+    ].join("\n"),
   );
   chmodSync(join(bin, "gh"), 0o755);
 
@@ -63,20 +82,23 @@ function setup() {
     git(clone, ...args)
       .toString()
       .trim();
-  return { run, gitOut, ghLog: () => readFileSync(log, "utf8") };
+  const pushed = () =>
+    git(student, "branch", "--list", "main").toString().includes("main");
+  const ghLog = () => (existsSync(log) ? readFileSync(log, "utf8") : "");
+  const allowCreate = () => rmSync(failFlag, { force: true });
+  return { run, gitOut, ghLog, pushed, allowCreate };
 }
 
 describe("npm run start-module", () => {
-  it("makes main, keeps the course remote, and creates the public repo", () => {
-    const { run, gitOut, ghLog } = setup();
+  it("makes main, keeps the course remote, and creates and pushes the public repo", () => {
+    const { run, gitOut, ghLog, pushed } = setup();
     const result = run();
     expect(result.status, result.stderr).toBe(0);
     expect(gitOut("branch", "--show-current")).toBe("main");
-    expect(gitOut("remote")).toBe("course");
-    expect(ghLog()).toContain(
-      "gh repo create copper-m3 --public --source . --remote origin --push",
-    );
+    expect(gitOut("remote").split("\n").sort()).toEqual(["course", "origin"]);
+    expect(ghLog()).toContain("gh repo create copper-m3 --public");
     expect(ghLog()).not.toContain("collaborators");
+    expect(pushed()).toBe(true);
   });
 
   it("refuses to run twice", () => {
@@ -85,5 +107,26 @@ describe("npm run start-module", () => {
     const second = run();
     expect(second.status).toBe(1);
     expect(second.stderr).toContain("already set up");
+  });
+
+  it("can be run again after creating the repo failed", () => {
+    const { run, gitOut, pushed, allowCreate } = setup({ failCreate: true });
+    const first = run();
+    expect(first.status).toBe(1);
+    expect(first.stderr).toContain("run npm run start-module again");
+    expect(gitOut("remote")).toBe("course");
+
+    allowCreate();
+    const second = run();
+    expect(second.status, second.stderr).toBe(0);
+    expect(pushed()).toBe(true);
+  });
+
+  it("uses a repo that already exists on GitHub instead of creating it", () => {
+    const { run, ghLog, pushed } = setup({ exists: true });
+    const result = run();
+    expect(result.status, result.stderr).toBe(0);
+    expect(ghLog()).not.toContain("repo create");
+    expect(pushed()).toBe(true);
   });
 });
