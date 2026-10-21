@@ -95,6 +95,7 @@ Grading runs each student's code, and code runs with the full access of whoever 
 
 - The container holds a copy of this repo and **one read-only GitHub token**. None of your files, logins or keys are in it.
 - Each student's code runs as **its own user** inside the container. It can't write to the grader, the shared packages, other students' checkouts or the results, and it can't read the grader's token.
+- **None of your folders is mounted.** The roster, hidden tests and result cache are copied into root-only folders before grading, and the results are copied back to `.grading/` at the end. (On a Mac, Docker Desktop lets every user in a container read a mounted folder, so mounting would let student code read the roster and earlier grades.)
 - The container has no extra privileges, has memory and process limits, and is deleted when grading ends.
 
 Use plain `npm run grade` only on repos you trust, such as the fake students in the grader's own tests.
@@ -185,7 +186,7 @@ npm run grade:docker -- --module 3 --roster ~/cis591/roster.csv --deadline … -
 GRADER_DOCKER_TEST=1 npx vitest run tests/grade/docker.test.ts
 ```
 
-It builds the image and runs the grader's end-to-end test inside it, plus `tests/grade/isolation.test.ts`, where a fake student's page tries to rewrite the grader, the packages, the results and another student's checkout, and to read the token, then reports what it managed. Every attempt must be blocked.
+It builds the image and runs the grader's end-to-end test inside it, plus `tests/grade/isolation.test.ts`, where a fake student's page tries to rewrite the grader, the packages, the results and another student's checkout, to read the roster and earlier results, and to read the token, then reports what it managed. Every attempt must be blocked.
 
 ### Adding grading to a new module
 
