@@ -28,6 +28,9 @@ export async function runVitest(ctx, paths, env) {
       "run",
       "--config",
       "vitest.check.config.mts",
+      // The default loader writes the bundled config into node_modules, which
+      // student code can't write to in the grading container.
+      "--configLoader=runner",
       "--reporter=json",
       `--outputFile=${output}`,
       "--maxWorkers=2",

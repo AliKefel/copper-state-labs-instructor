@@ -26,4 +26,8 @@ COPY . .
 
 # The grader runs as root; each student's code runs as user 20000 + n.
 ENV GRADE_STUDENT_UID_BASE=20000
+# grade:docker copies the roster and hidden tests into /input and the results
+# out of /results. Only root can open them, so student code can't read the
+# roster, other students' results or the hidden tests.
+RUN mkdir -m 700 /input /results
 CMD ["node", "scripts/grade/grade.mjs"]

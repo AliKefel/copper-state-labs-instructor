@@ -26,6 +26,7 @@ const TOKEN = "isolation-test-token";
 
 // The fake student's page. ROOT, OUT and REPORT are filled in below.
 const PROBE = `import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const found: Record<string, string> = {};
@@ -40,6 +41,15 @@ const tryWrite = (name: string, path: string) => {
 tryWrite("grader", "ROOT/scripts/grade/tampered.mjs");
 tryWrite("packages", "ROOT/node_modules/tampered.txt");
 tryWrite("results", "OUT/tampered.txt");
+// grade:docker copies the roster and old results into these root-only folders.
+for (const dir of ["/input", "/results"]) {
+  try {
+    readdirSync(dir);
+    found["read " + dir] = "listed " + dir;
+  } catch {
+    found["read " + dir] = "blocked";
+  }
+}
 for (const dir of readdirSync(tmpdir())) {
   if (dir.startsWith("grade-out-")) {
     tryWrite("private results", join(tmpdir(), dir, "tampered.txt"));
@@ -177,6 +187,13 @@ describe.runIf(isolated)("student code in the grading container", () => {
   ])("can't write to the %s", (target) => {
     expect(report![target]).toBe("blocked");
   });
+
+  it.each(["/input", "/results"])(
+    "can't read %s (the roster and earlier results)",
+    (dir) => {
+      expect(report![`read ${dir}`]).toBe("blocked");
+    },
+  );
 
   it("can't read the grader's GitHub token", () => {
     expect(report!.token).toBe("not found");

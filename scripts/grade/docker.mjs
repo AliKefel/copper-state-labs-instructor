@@ -7,9 +7,17 @@
 //     --deadline 2026-10-20T23:59-07:00
 //
 // The container gets only: GH_TOKEN, GRADING_AI_GATEWAY_API_KEY (with --evals),
-// the roster and hidden tests (read-only) and the results folder.
+// and copies of the roster, hidden tests and result cache. None of your folders
+// is mounted: on a Mac, Docker Desktop lets every user in the container read a
+// mounted folder, student code included. The results are copied out at the end.
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+} from "node:fs";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 
@@ -19,12 +27,15 @@ export const IMAGE_LABEL = "org.cis591.role=copper-grader";
 
 // Locks the container down: no extra privileges beyond what the grader needs
 // to run each student's code as its own user, and limits on memory and
-// processes. Removed when the run ends.
+// processes. DAC_OVERRIDE and FOWNER let the grader (root) clean up files that
+// student code created; student code runs as another user, which gets none of
+// these. Removed when the run ends.
 export const CONTAINER_FLAGS = [
-  "--rm",
   "--init",
   "--cap-drop=ALL",
   "--cap-add=CHOWN",
+  "--cap-add=DAC_OVERRIDE",
+  "--cap-add=FOWNER",
   "--cap-add=SETUID",
   "--cap-add=SETGID",
   "--cap-add=KILL",
@@ -33,18 +44,15 @@ export const CONTAINER_FLAGS = [
   "--pids-limit=4096",
 ];
 
-/** The `docker run` arguments for one grading run. */
+/**
+ * The `docker create` arguments for one grading run, and the files to copy
+ * into the container before it starts.
+ */
 export function dockerRunArgs(opts, { root, moduleNumber }) {
-  const roster = resolve(opts.roster);
   const out = resolve(
     opts.out ?? join(root, ".grading", `module-${moduleNumber}`),
   );
-  const mounts = [
-    "-v",
-    `${roster}:/input/roster.csv:ro`,
-    "-v",
-    `${out}:/results`,
-  ];
+  const inputs = [[resolve(opts.roster), "/input/roster.csv"]];
   const grade = [
     "--module",
     String(moduleNumber),
@@ -54,8 +62,12 @@ export function dockerRunArgs(opts, { root, moduleNumber }) {
     "/results",
   ];
   if (opts.hidden) {
-    mounts.push("-v", `${resolve(opts.hidden)}:/input/hidden:ro`);
+    inputs.push([resolve(opts.hidden), "/input/hidden"]);
     grade.push("--hidden", "/input/hidden");
+  }
+  // Earlier results, so unchanged submissions aren't graded again.
+  if (!opts["no-cache"] && existsSync(join(out, "cache"))) {
+    inputs.push([join(out, "cache"), "/results/cache"]);
   }
   for (const name of ["deadline", "concurrency", "only", "repo-template"]) {
     if (opts[name] !== undefined) grade.push(`--${name}`, opts[name]);
@@ -69,11 +81,11 @@ export function dockerRunArgs(opts, { root, moduleNumber }) {
   }
   return {
     out,
+    inputs,
     args: [
-      "run",
+      "create",
       ...CONTAINER_FLAGS,
       ...env,
-      ...mounts,
       IMAGE,
       "node",
       "scripts/grade/grade.mjs",
@@ -139,10 +151,48 @@ function main() {
     { stdio: "ignore" },
   );
 
-  const { out, args } = dockerRunArgs(opts, { root, moduleNumber });
-  mkdirSync(out, { recursive: true });
-  const run = spawnSync("docker", args, { stdio: "inherit" });
-  process.exit(run.status ?? 1);
+  const { out, inputs, args } = dockerRunArgs(opts, { root, moduleNumber });
+  const created = spawnSync("docker", args, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "inherit"],
+  });
+  if (created.status !== 0) fail("creating the grading container failed");
+  const id = created.stdout.trim();
+  const docker = (...dockerArgs) =>
+    spawnSync("docker", dockerArgs, { stdio: ["ignore", "ignore", "inherit"] })
+      .status === 0;
+
+  // Ctrl+C reaches the grader through Docker; stay alive to remove the container.
+  process.on("SIGINT", () => {});
+  let status = 1;
+  let problem = null;
+  try {
+    for (const [from, to] of inputs) {
+      if (!docker("cp", from, `${id}:${to}`)) {
+        problem = `copying ${from} into the container failed`;
+        break;
+      }
+    }
+    if (!problem) {
+      status =
+        spawnSync("docker", ["start", "--attach", id], { stdio: "inherit" })
+          .status ?? 1;
+    }
+    if (!problem && status === 0) {
+      // Replace the old results with the new ones.
+      mkdirSync(out, { recursive: true });
+      for (const entry of readdirSync(out)) {
+        rmSync(join(out, entry), { recursive: true, force: true });
+      }
+      if (!docker("cp", `${id}:/results/.`, out)) {
+        problem = "copying the results out of the container failed";
+      }
+    }
+  } finally {
+    docker("rm", "--force", id);
+  }
+  if (problem) fail(problem);
+  process.exit(status);
 }
 
 if (import.meta.main) main();
