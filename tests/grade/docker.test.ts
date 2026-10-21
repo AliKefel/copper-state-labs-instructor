@@ -30,6 +30,7 @@ function setup({ dockerRunning = true } = {}) {
     join(bin, "docker"),
     `#!/usr/bin/env node
 require("fs").appendFileSync(${JSON.stringify(log)}, JSON.stringify(process.argv.slice(2)) + "\\n");
+if (process.argv[2] === "create") console.log("fake-container");
 process.exit(process.argv[2] === "info" && ${!dockerRunning} ? 1 : 0);
 `,
   );
@@ -58,7 +59,11 @@ process.exit(process.argv[2] === "info" && ${!dockerRunning} ? 1 : 0);
           .split("\n")
           .map((line) => JSON.parse(line))
       : [];
-    return { ...result, calls, runCall: calls.find((c) => c[0] === "run") };
+    return {
+      ...result,
+      calls,
+      runCall: calls.find((c) => c[0] === "create"),
+    };
   };
   const base = ["--roster", join(tmp, "roster.csv"), "--out", join(tmp, "out")];
   return { tmp, run, base };
@@ -67,8 +72,10 @@ process.exit(process.argv[2] === "info" && ${!dockerRunning} ? 1 : 0);
 // The fake `docker` is a script with a #! line, which Windows can't run. The
 // launcher builds the same arguments on every system.
 describe.skipIf(process.platform === "win32")("npm run grade:docker", () => {
-  it("runs the grader in a locked-down container with only the token, roster and results", () => {
+  it("runs the grader in a locked-down container with only the token and copies of the roster and results", () => {
     const { tmp, run, base } = setup();
+    mkdirSync(join(tmp, "out", "cache"), { recursive: true });
+    writeFileSync(join(tmp, "out", "old-grades.csv"), "old");
     const result = run([
       ...base,
       "--module",
@@ -88,8 +95,29 @@ describe.skipIf(process.platform === "win32")("npm run grade:docker", () => {
       "info",
       "build --quiet",
       "image prune",
-      "run --rm",
+      "create --init",
+      `cp ${join(tmp, "roster.csv")}`,
+      `cp ${join(tmp, "hidden")}`,
+      `cp ${join(tmp, "out", "cache")}`,
+      "start --attach",
+      "cp fake-container:/results/.",
+      "rm --force",
     ]);
+    // Copied in, never mounted: on a Mac, every user in the container can read
+    // a mounted folder, student code included.
+    expect(result.calls.slice(4, 7).map((c) => c[2])).toEqual([
+      "fake-container:/input/roster.csv",
+      "fake-container:/input/hidden",
+      "fake-container:/results/cache",
+    ]);
+    expect(result.calls.at(-2)).toEqual([
+      "cp",
+      "fake-container:/results/.",
+      join(tmp, "out"),
+    ]);
+    expect(result.calls.at(-1)).toEqual(["rm", "--force", "fake-container"]);
+    // The old results are replaced by the new ones.
+    expect(existsSync(join(tmp, "out", "old-grades.csv"))).toBe(false);
     expect(result.calls[2]).toEqual([
       "image",
       "prune",
@@ -100,11 +128,15 @@ describe.skipIf(process.platform === "win32")("npm run grade:docker", () => {
 
     const args = result.runCall!;
     expect(args).toEqual(expect.arrayContaining(CONTAINER_FLAGS));
+    expect(args).not.toContain("-v");
     expect(args).toEqual(
       expect.arrayContaining([
-        `${join(tmp, "roster.csv")}:/input/roster.csv:ro`,
-        `${join(tmp, "hidden")}:/input/hidden:ro`,
-        `${join(tmp, "out")}:/results`,
+        "--roster",
+        "/input/roster.csv",
+        "--hidden",
+        "/input/hidden",
+        "--out",
+        "/results",
         "--deadline",
         "2026-10-20T23:59-07:00",
       ]),
@@ -177,6 +209,7 @@ describe.runIf(process.env.GRADER_DOCKER_TEST === "1")(
         "docker",
         [
           "run",
+          "--rm",
           ...CONTAINER_FLAGS,
           IMAGE,
           "npx",
@@ -187,7 +220,8 @@ describe.runIf(process.env.GRADER_DOCKER_TEST === "1")(
         ],
         { encoding: "utf8" },
       );
-      const output = run.stdout + run.stderr;
+      // Without Vitest's colors, so the summary line can be matched.
+      const output = (run.stdout + run.stderr).replace(/\u001b\[[0-9;]*m/g, "");
       expect(run.status, output).toBe(0);
       expect(output).toMatch(/Test Files {2}2 passed/);
     }, 900_000);
