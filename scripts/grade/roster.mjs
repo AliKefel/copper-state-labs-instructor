@@ -1,5 +1,6 @@
-// Reads the roster CSV: a header row with at least `github`; optional `name`
-// and `vercel_url` (a fallback when no deployment is found through GitHub).
+// Reads the roster CSV: a header row with at least `github`; optional `name`,
+// `vercel_url` (a fallback when no deployment is found through GitHub), and
+// `repo` and `branch` for students who submitted another repo or branch.
 import { readFileSync } from "node:fs";
 
 function parseLine(line) {
