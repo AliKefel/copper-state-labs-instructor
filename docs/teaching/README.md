@@ -137,7 +137,7 @@ The first run builds the grading image, which takes a few minutes. After that it
 | `--out <dir>` | Output folder (default: `.grading/module-N/`, which is gitignored) |
 | `--concurrency <n>` | Students graded at once (default: half the CPU cores Docker has) |
 | `--only a,b` | Grade only these GitHub usernames (for regrades) |
-| `--evals` | Also run AI evals. Needs `GRADING_AI_GATEWAY_API_KEY`; see below |
+| `--evals` | Also run AI evals. Needs `GRADING_GOOGLE_GENERATIVE_AI_API_KEY`; see below |
 | `--no-cache` | Grade everyone again from scratch |
 
 It stops with a clear message if Docker isn't running, `GH_TOKEN` isn't set, or the roster or hidden-tests folder doesn't exist.
@@ -167,14 +167,14 @@ For each student it asks GitHub for the repo's production deployments (Vercel re
 
 ### Evals
 
-`--evals` runs `specs/module-N/evals` only for students whose spec tests all pass, with `AI_GATEWAY_API_KEY` set from your `GRADING_AI_GATEWAY_API_KEY`. Evals call the student's AI features, so this is the one key student code **can** read during grading, and a student could make their code send it elsewhere. So:
+`--evals` runs `specs/module-N/evals` only for students whose spec tests all pass, with `GOOGLE_GENERATIVE_AI_API_KEY` set from your `GRADING_GOOGLE_GENERATIVE_AI_API_KEY`. Evals call the student's AI features, so this is the one key student code **can** read during grading, and a student could make their code send it elsewhere. So:
 
 - Create a **grading-only** AI Gateway key, never your personal one.
 - Give it a **low spending limit** (roughly class size × evals per student × a few cents).
 - **Delete it and make a new one** after each module's grading.
 
 ```bash
-export GRADING_AI_GATEWAY_API_KEY="$(cat ~/cis591/grading-ai-key)"
+export GRADING_GOOGLE_GENERATIVE_AI_API_KEY="$(cat ~/cis591/grading-ai-key)"
 npm run grade:docker -- --module 3 --roster ~/cis591/roster.csv --deadline … --evals
 ```
 
