@@ -3,7 +3,9 @@
 //   npm run grade -- --roster ~/cis591/roster.csv --deadline 2026-11-03T23:59-07:00
 //
 // Options:
-//   --roster <csv>         required; columns: name, github, vercel_url (optional)
+//   --roster <csv>         required; columns: name, github, and optional
+//                          vercel_url, repo (default copper-mN) and branch
+//                          (default: the repo's default branch)
 //   --module <n>           default: "module" in course.config.json
 //   --deadline <date>      grade the last commit before this time (ISO 8601)
 //   --hidden <dir>         hidden tests: <dir>/<module folder>/*.test.ts(x)
@@ -133,13 +135,19 @@ console.log(
 
 async function gradeStudent(student) {
   const notes = [];
+  const repo = student.repo || repoName;
   const url = template
     .replaceAll("{github}", student.github)
-    .replaceAll("{repo}", repoName)
+    .replaceAll("{repo}", repo)
     .replaceAll("{module}", String(moduleNumber));
   const dir = join(work, student.github);
   const uid = isolated ? uidBase + roster.indexOf(student) : undefined;
-  const submission = fetchSubmission({ url, dir, deadline });
+  const submission = fetchSubmission({
+    url,
+    dir,
+    deadline,
+    branch: student.branch,
+  });
   if (submission.missing) {
     return { student, status: "no submission", notes: [submission.missing] };
   }
@@ -147,7 +155,7 @@ async function gradeStudent(student) {
   const ctx = {
     student,
     owner: student.github,
-    repoName,
+    repoName: repo,
     sha: submission.sha,
     module: moduleNumber,
     moduleDirName,
