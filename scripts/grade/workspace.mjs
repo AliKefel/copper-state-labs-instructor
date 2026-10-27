@@ -65,15 +65,17 @@ export function fingerprint(root, hiddenDir) {
 
 /**
  * Clones a student repo and finds the commit to grade: the last commit before
- * the deadline (or the latest commit if there's no deadline).
+ * the deadline (or the latest commit if there's no deadline), on `branch` if
+ * given, otherwise on the repo's default branch.
  */
-export function fetchSubmission({ url, dir, deadline }) {
+export function fetchSubmission({ url, dir, deadline, branch }) {
   try {
     runSync("git", [
       "clone",
       "--quiet",
       "--filter=blob:none",
       "--no-checkout",
+      ...(branch ? ["--branch", branch] : []),
       url,
       dir,
     ]);
