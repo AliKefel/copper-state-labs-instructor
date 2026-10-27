@@ -110,7 +110,7 @@ Use plain `npm run grade` only on repos you trust, such as the fake students in 
 
    The grader only reads students' public repos and their deployment records, so this token can't change anything, even if it leaks. Don't use your own login token (`gh auth token`): that one can push to and delete your repos.
 3. **Store the token outside the repo**, for example in your password manager or in `~/cis591/grading-token` with `chmod 600`.
-4. **Make the roster** (keep it outside the repo): a CSV with columns `name`, `github` and optional `vercel_url`. Use the Vercel link from each student's Module 0 submission; it's only used if GitHub has no deployment record.
+4. **Make the roster** (keep it outside the repo): a CSV with columns `name`, `github` and optional `vercel_url`, `repo` and `branch`. Fill `repo` when a student submitted a repo not named `copper-mN` (for example `copper-m1-ext`), and `branch` when their work isn't on the default branch; leave them empty otherwise. Use the Vercel link from each student's Module 0 submission; it's only used if GitHub has no deployment record.
 
 ### Grading a module
 

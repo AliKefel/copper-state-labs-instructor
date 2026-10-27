@@ -56,8 +56,9 @@ function makeStudent(
   github: string,
   edit: (dir: string) => void,
   lateEdit?: (dir: string) => void,
+  repoName = "copper-m0",
 ) {
-  const dir = join(students, github, "copper-m0");
+  const dir = join(students, github, repoName);
   cpSync(join(tmp, "template"), dir, { recursive: true });
   edit(dir);
   git(dir, ON_TIME, "init", "-q", "-b", "main");
@@ -153,10 +154,18 @@ beforeAll(async () => {
     () => {},
     (dir) => editLine(dir, "Week 0 check-in: Cam, a bit late."),
   );
+  // Eve's work is only on a branch of a differently named repo; the roster's
+  // repo and branch columns point the grader there.
+  makeStudent("eve", () => {}, undefined, "copper-m0-ext");
+  const eve = join(students, "eve", "copper-m0-ext");
+  git(eve, ON_TIME, "checkout", "-qb", "extension");
+  editLine(eve, "Week 0 check-in: Eve, on a branch.");
+  git(eve, ON_TIME, "commit", "-qam", "extension");
 
   writeFileSync(
     join(tmp, "roster.csv"),
-    `name,github,vercel_url\nAna,ana,${site}\nBen,ben,\nCam,cam,\nDee,dee,\n`,
+    `name,github,vercel_url,repo,branch\nAna,ana,${site},,\nBen,ben,,,\nCam,cam,,,\nDee,dee,,,\n` +
+      `Eve,eve,,copper-m0-ext,extension\n`,
   );
   // A fake `gh` that reports no deployments, so only the roster URL is found.
   mkdirSync(join(tmp, "bin"));
@@ -210,6 +219,13 @@ describe.runIf(MODULE_0)("npm run grade", () => {
     });
   });
 
+  it("grades the roster's repo and branch when given", () => {
+    expect(first.csv.eve).toMatchObject({
+      status: "on time",
+      "AC-0.2 (10)": "10",
+    });
+  });
+
   it("writes feedback with points and details", () => {
     const feedback = readFileSync(join(out, "feedback", "ana.md"), "utf8");
     expect(feedback).toContain("**Auto-graded: 20 of 20 points.**");
@@ -218,7 +234,7 @@ describe.runIf(MODULE_0)("npm run grade", () => {
 
   it("reuses cached results on a second run", async () => {
     const second = await grade();
-    expect(second.stdout).toContain("(3 check results from cache)");
+    expect(second.stdout).toContain("(4 check results from cache)");
     expect(second.csv).toEqual(first.csv);
   }, 120_000);
 });
