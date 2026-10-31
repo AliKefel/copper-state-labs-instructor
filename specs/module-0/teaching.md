@@ -42,7 +42,7 @@ A fresh clone scores **1 of 2** criteria (5 of 15 points) on `npm run check`.
 |---|---|---|---|
 | AC-0.1 | 5 | `app/page.tsx` renders an element with `data-testid="week-0-line"` | What the line says |
 | AC-0.2 | 10 | That element's text, trimmed, isn't the default `Week 0 check-in: Hello from Copper State Labs!` | That the new text is about the student, or isn't empty |
-| DEPLOY | 5 | A live Vercel production deployment of `copper-m0` whose page shows the footer "Fictional — for educational use." | That the live site shows the changed line (the details say whether the deployed commit is the graded one) |
+| DEPLOY | 5 | The Vercel link the student submitted is live and shows the footer "Fictional — for educational use." | That the live site shows the changed line |
 
 ## 5. Grading Module 0
 

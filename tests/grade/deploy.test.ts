@@ -2,10 +2,7 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import deploy, {
-  DEFAULT_MARKER,
-  productionDomain,
-} from "../../scripts/grade/checks/deploy.mjs";
+import deploy, { DEFAULT_MARKER } from "../../scripts/grade/checks/deploy.mjs";
 
 let server: Server;
 let base = "";
@@ -23,29 +20,10 @@ beforeAll(async () => {
 });
 afterAll(() => new Promise<void>((resolve) => server.close(() => resolve())));
 
-// A fake `gh api` answering with the given deployments and their statuses.
-function fakeGitHub(
-  deployments: {
-    id: number;
-    sha: string;
-    environment: string;
-    url: string;
-    state?: string;
-  }[],
-) {
-  return async (path: string) => {
-    const status = /deployments\/(\d+)\/statuses/.exec(path);
-    if (status) {
-      const d = deployments.find((x) => x.id === Number(status[1]))!;
-      return [{ state: d.state ?? "success", environment_url: d.url }];
-    }
-    return deployments.map(({ id, sha, environment }) => ({
-      id,
-      sha,
-      environment,
-    }));
-  };
-}
+// A `gh api` that fails the test if the check asks GitHub for anything.
+const noGitHub = async (path: string) => {
+  throw new Error(`unexpected GitHub call: ${path}`);
+};
 
 const ctx = (overrides: object) => ({
   student: { github: "ana", vercel_url: "" },
@@ -54,7 +32,7 @@ const ctx = (overrides: object) => ({
   sha: "abc1234def",
   settings: {},
   fetch: globalThis.fetch,
-  gh: fakeGitHub([]),
+  gh: noGitHub,
   ...overrides,
 });
 
@@ -62,66 +40,20 @@ const run = async (overrides: object) =>
   (await deploy.run(ctx(overrides) as never)).results[0];
 
 describe("deploy check", () => {
-  it("passes a live production deployment of the graded commit", async () => {
-    const result = await run({
-      gh: fakeGitHub([
-        {
-          id: 2,
-          sha: "zzz",
-          environment: "Preview – copper-m0",
-          url: `${base}/other`,
-        },
-        {
-          id: 1,
-          sha: "abc1234def",
-          environment: "Production – copper-m0",
-          url: `${base}/live`,
-        },
-      ]),
-    });
-    expect(result).toMatchObject({ criterion: "DEPLOY", passed: true });
-    expect(result.detail).toContain("matches graded commit");
-  });
-
-  it("passes but notes when the deployed commit differs", async () => {
-    const result = await run({
-      gh: fakeGitHub([
-        {
-          id: 1,
-          sha: "9999999aaa",
-          environment: "Production",
-          url: `${base}/live`,
-        },
-      ]),
-    });
-    expect(result.passed).toBe(true);
-    expect(result.detail).toContain("differs from graded commit");
-  });
-
-  it("skips failed deployments", async () => {
-    const result = await run({
-      gh: fakeGitHub([
-        {
-          id: 1,
-          sha: "abc",
-          environment: "Production",
-          url: `${base}/live`,
-          state: "failure",
-        },
-      ]),
-    });
-    expect(result).toMatchObject({
-      passed: false,
-      detail: "no Vercel deployment found",
-    });
-  });
-
-  it("falls back to the roster's vercel_url", async () => {
+  it("passes the submitted link when it shows the marker", async () => {
     const result = await run({
       student: { github: "ana", vercel_url: `${base}/live` },
     });
-    expect(result.passed).toBe(true);
-    expect(result.detail).toContain("URL from roster");
+    expect(result).toMatchObject({ criterion: "DEPLOY", passed: true });
+    expect(result.detail).toBe(`live at ${base}/live`);
+  });
+
+  it("fails without a submitted link, without asking GitHub", async () => {
+    const result = await run({});
+    expect(result).toMatchObject({
+      passed: false,
+      detail: "no Vercel link submitted (roster's vercel_url is empty)",
+    });
   });
 
   it("fails when the page doesn't show the marker or is down", async () => {
@@ -133,6 +65,16 @@ describe("deploy check", () => {
       (await run({ student: { github: "a", vercel_url: `${base}/missing` } }))
         .detail,
     ).toContain("HTTP 404");
+    expect(
+      (
+        await run({
+          student: { github: "a", vercel_url: `${base}/live` },
+          fetch: async () => {
+            throw new Error("ECONNREFUSED");
+          },
+        })
+      ).detail,
+    ).toContain("didn't respond");
   });
 
   it("uses the module's marker setting", async () => {
@@ -143,76 +85,23 @@ describe("deploy check", () => {
     expect(result.passed).toBe(true);
   });
 
-  it("reports GitHub lookup errors without crashing", async () => {
+  it("fails a link behind the Vercel login instead of guessing another URL", async () => {
+    const link = "https://copper-m0-12j5-m6oj94gwm-team-projects.vercel.app";
+    const tried: string[] = [];
     const result = await run({
-      gh: async () => {
-        throw new Error("HTTP 404");
+      student: { github: "ana", vercel_url: link },
+      // Every URL ends at the Vercel login, like Vercel Authentication.
+      fetch: async (url: string) => {
+        tried.push(url);
+        return Object.defineProperty(
+          new Response("<h1>Log in to Vercel</h1>"),
+          "url",
+          { value: `https://vercel.com/login?next=${encodeURIComponent(url)}` },
+        );
       },
     });
     expect(result.passed).toBe(false);
-    expect(result.detail).toContain("GitHub lookup failed");
-  });
-
-  describe("Vercel login on deployment URLs", () => {
-    const DEPLOYMENT =
-      "https://copper-m0-12j5-m6oj94gwm-team-projects.vercel.app";
-    const PRODUCTION = "https://copper-m0-12j5.vercel.app";
-
-    // Deployment URLs end at the Vercel login, like Vercel Authentication;
-    // the given public URLs show `pages[url]`.
-    const fakeVercel =
-      (pages: Record<string, string>) => async (url: string) =>
-        url in pages
-          ? new Response(pages[url])
-          : Object.defineProperty(
-              new Response("<h1>Log in to Vercel</h1>"),
-              "url",
-              {
-                value: `https://vercel.com/login?next=${encodeURIComponent(url)}`,
-              },
-            );
-    const github = fakeGitHub([
-      {
-        id: 1,
-        sha: "abc1234def",
-        environment: "Production",
-        url: DEPLOYMENT,
-      },
-    ]);
-
-    it("works out the production domain from a deployment URL", () => {
-      expect(productionDomain(`${DEPLOYMENT}/`)).toBe(PRODUCTION);
-      expect(productionDomain(PRODUCTION)).toBeNull();
-    });
-
-    it("uses the production domain when the deployment URL needs a login", async () => {
-      const result = await run({
-        gh: github,
-        fetch: fakeVercel({ [PRODUCTION]: `<p>${DEFAULT_MARKER}</p>` }),
-      });
-      expect(result.passed).toBe(true);
-      expect(result.detail).toContain(`live at ${PRODUCTION}`);
-      expect(result.detail).toContain("needs a Vercel login");
-      expect(result.detail).toContain("matches graded commit");
-    });
-
-    it("prefers the roster's vercel_url over the guessed domain", async () => {
-      const roster = "https://my-copper.vercel.app";
-      const result = await run({
-        gh: github,
-        student: { github: "ana", vercel_url: roster },
-        fetch: fakeVercel({ [roster]: `<p>${DEFAULT_MARKER}</p>` }),
-      });
-      expect(result.passed).toBe(true);
-      expect(result.detail).toContain(`live at ${roster}`);
-    });
-
-    it("explains the login problem when no public URL works", async () => {
-      const result = await run({ gh: github, fetch: fakeVercel({}) });
-      expect(result.passed).toBe(false);
-      expect(result.detail).toContain("needs a Vercel login");
-      expect(result.detail).toContain("roster's vercel_url");
-      expect(result.detail).not.toContain("doesn't show");
-    });
+    expect(result.detail).toContain(`${link} needs a Vercel login`);
+    expect(tried).toEqual([link]);
   });
 });
