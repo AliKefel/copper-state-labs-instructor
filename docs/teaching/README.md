@@ -161,6 +161,92 @@ In testing, 4 fake students graded in about 2 seconds on a laptop without Docker
 
 ### The deployment check
 
+It loads the link each student submitted (the roster's `vercel_url`) and passes if it returns 200 and shows the marker text, by default the footer "Fictional — for educational use." Only that link counts: the check doesn't look up deployments on GitHub or guess other URLs, so a student can't get credit for a site they didn't submit. An empty `vercel_url` fails the check.
+
+**Vercel's login on deployment URLs.** New Vercel projects turn on Vercel Authentication, which puts a Vercel login in front of each deployment's own URL (`copper-m0-12j5-m6oj94gwm-<team>-projects.vercel.app`) and branch previews. The project's production domain (`copper-m0-12j5.vercel.app`) stays public. A submitted link that leads to the Vercel login fails, and the feedback says so: ask the student for their public `https://<project>.vercel.app` link, put it in the roster and re-grade. Don't ask students to turn the protection off.
+
+### Evals
+
+Put AI quality checks in `specs/module-N/evals/*.eval.ts`. They run as Vitest tests, so give them criterion IDs and assert on a score threshold (for example, 85% of review categories correct) rather than exact answers. **Evals call real models and cost money**; they only run for the current module, never for earlier ones.
+
+---
+
+## 4. Grading
+
+### Grade in Docker, never directly
+
+Grading runs each student's code, and code runs with the full access of whoever runs it. Run plainly on your Mac, a student's code could read your files and SSH keys, use your `gh` login (`gh auth token` prints it, even though it's kept in the keychain) or alter the grader for everyone after them. It would only take a few lines hidden in their app.
+
+`npm run grade:docker` runs the same grader inside a throwaway Linux container instead:
+
+- The container holds a copy of this repo and **one read-only GitHub token**. None of your files, logins or keys are in it.
+- Each student's code runs as **its own user** inside the container. It can't write to the grader, the shared packages, other students' checkouts or the results, and it can't read the grader's token.
+- **None of your folders is mounted.** The roster, hidden tests and result cache are copied into root-only folders before grading, and the results are copied back to `.grading/` at the end. (On a Mac, Docker Desktop lets every user in a container read a mounted folder, so mounting would let student code read the roster and earlier grades.)
+- The container has no extra privileges, has memory and process limits, and is deleted when grading ends.
+
+Use plain `npm run grade` only on repos you trust, such as the fake students in the grader's own tests.
+
+### One-time setup
+
+1. **Install Docker Desktop** (docker.com) and start it. It must be running whenever you grade.
+2. **Create the grading token.** On GitHub: Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token.
+   - Name: `cis591-grading`. Expiration: the end of the semester.
+   - Repository access: **Public repositories**.
+   - Permissions: **none**.
+
+   The grader only reads students' public repos and their deployment records, so this token can't change anything, even if it leaks. Don't use your own login token (`gh auth token`): that one can push to and delete your repos.
+3. **Store the token outside the repo**, for example in your password manager or in `~/cis591/grading-token` with `chmod 600`.
+4. **Make the roster** (keep it outside the repo): a CSV with columns `name`, `github` and optional `vercel_url`, `repo` and `branch`. Fill `repo` when a student submitted a repo not named `copper-mN` (for example `copper-m1-ext`), and `branch` when their work isn't on the default branch; leave them empty otherwise. Use the Vercel link from each student's Module 0 submission; it's only used if GitHub has no deployment record.
+
+### Grading a module
+
+From your checkout of the module's **solution** branch (it has every module's specs and tests up to that point), with Docker Desktop running:
+
+```bash
+export GH_TOKEN="$(cat ~/cis591/grading-token)"
+npm run grade:docker -- --module 2 \
+  --roster ~/cis591/roster.csv \
+  --deadline 2026-11-03T23:59-07:00 \
+  --hidden ~/cis591/hidden-tests
+```
+
+The first run builds the grading image, which takes a few minutes. After that it's rebuilt in seconds unless `package-lock.json` changed.
+
+**Disk space:** the grading image is about 1.5 GB. Each run deletes students' checkouts when it ends, and removes the previous grading image after a rebuild, so it doesn't grow over the semester. What stays in `.grading/` is a few KB per student. Docker also keeps a build cache shared by all your projects; if Docker Desktop's disk use grows, run `docker builder prune` (it only clears cached build steps, and the next build is slower).
+
+| Option | What it does |
+|---|---|
+| `--roster <csv>` | **Required.** The roster CSV |
+| `--module <n>` | Module to grade (default: `module` in `course.config.json`) |
+| `--deadline <time>` | Grade each student's last commit before this time. Include the time zone |
+| `--hidden <dir>` | Hidden tests: `<dir>/module-2-…/*.test.ts`, named after the module's folder, are added to the module's tests for grading only |
+| `--out <dir>` | Output folder (default: `.grading/module-N/`, which is gitignored) |
+| `--concurrency <n>` | Students graded at once (default: half the CPU cores Docker has) |
+| `--only a,b` | Grade only these GitHub usernames (for regrades) |
+| `--evals` | Also run AI evals. Needs `GRADING_AI_GATEWAY_API_KEY`; see below |
+| `--no-cache` | Grade everyone again from scratch |
+
+It stops with a clear message if Docker isn't running, `GH_TOKEN` isn't set, or the roster or hidden-tests folder doesn't exist.
+
+**Keep the roster, hidden tests, token and results outside the repo** (or in `.grading/`). This repo's branches are published to students. The grader code itself isn't secret.
+
+### What it does for each student
+
+1. Clones `github.com/<github>/copper-mN` (partial clone, fast) and picks the **last commit before the deadline**. If later commits exist, the student is marked `late`; if there's no repo or no commit before the deadline, `no submission`.
+2. Copies **your** grading files over the student's: every `specs/module-*/tests`, `evals`, `rubric.md`, `grading.mjs` and `checks/`, plus the check and grade scripts and the Vitest check config. Editing those in a student repo has no effect.
+3. Links the image's `node_modules` into the checkout (the lockfile is identical, so no install). If the student changed dependencies, it runs `npm ci --ignore-scripts` for that student only.
+4. Runs the module's checks as that student's own user, with **no keys or tokens** in the environment and a per-student timeout (default 3 minutes).
+5. Caches results by graded commit plus a fingerprint of your grading files. Re-running only regrades students who pushed or whose tests you changed. The deployment check always re-runs (it takes about a second).
+
+### Output
+
+- **`grades.csv`:** status, graded commit, points per rubric row, auto-graded total and maximum, blank columns for manual rows (TAs fill these in), notes. Ready to import into Canvas.
+- **`feedback/<github>.md`:** the same checklist students see with `npm run check`, plus points and failure details. Share through Canvas.
+
+In testing, 4 fake students graded in about 2 seconds on a laptop without Docker. Expect roughly 2–4 minutes for 60 students; this will be measured on the first real module.
+
+### The deployment check
+
 For each student it asks GitHub for the repo's production deployments (Vercel reports them when a student imports the repo, as in the last step of each module's student instructions), falling back to the roster's `vercel_url`. It loads the page and passes if it returns 200 and shows the marker text, by default the footer "Fictional — for educational use." The details say whether the deployed commit matches the graded one. **Confirm on your dry-run account** that the grader finds a real Vercel deployment.
 
 **Vercel's login on deployment URLs.** New Vercel projects turn on Vercel Authentication, which puts a Vercel login in front of each deployment's own URL (`copper-m0-12j5-m6oj94gwm-<team>-projects.vercel.app`), the URL Vercel reports to GitHub. The project's production domain (`copper-m0-12j5.vercel.app`) stays public. When a URL leads to the Vercel login, the check tries the roster's `vercel_url`, then the production domain worked out from the deployment URL, and says so in the feedback. Working out the domain is a best guess, so **fill `vercel_url` from the links students submit** (their public `https://<project>.vercel.app` link). Don't ask students to turn the protection off.

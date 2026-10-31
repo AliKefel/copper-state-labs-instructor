@@ -225,7 +225,7 @@ describe.runIf(MODULE_0)("npm run grade", () => {
   it("writes feedback with points and details", () => {
     const feedback = readFileSync(join(out, "feedback", "ana.md"), "utf8");
     expect(feedback).toContain("**Auto-graded: 20 of 20 points.**");
-    expect(feedback).toContain("URL from roster");
+    expect(feedback).toContain("live at http://127.0.0.1:");
   });
 
   it("reuses cached results on a second run", async () => {
